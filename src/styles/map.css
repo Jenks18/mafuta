@@ -1,0 +1,29 @@
+/* Custom styles for the map page */
+.station-marker {
+  cursor: pointer;
+}
+
+.station-marker:hover {
+  transform: scale(1.1);
+  transition: transform 0.2s ease;
+}
+
+/* Mapbox custom marker styles */
+.mapboxgl-marker {
+  cursor: pointer;
+}
+
+.mapboxgl-popup-content {
+  padding: 12px;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Hide Mapbox logo for cleaner look (ensure you comply with Mapbox terms) */
+.mapboxgl-ctrl-logo {
+  display: none !important;
+}
+
+.mapboxgl-ctrl-attrib {
+  display: none !important;
+}

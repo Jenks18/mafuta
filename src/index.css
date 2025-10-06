@@ -47,6 +47,114 @@
     border: 1px solid rgba(34, 197, 94, 0.15);
     box-shadow: 0 8px 32px rgba(34, 197, 94, 0.08), 0 2px 16px rgba(21, 128, 61, 0.04);
   }
+
+  /* Hide scrollbars but keep functionality */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar { 
+    display: none;  /* Safari and Chrome */
+  }
+
+  /* Smooth scroll snapping */
+  .snap-x {
+    scroll-snap-type: x mandatory;
+  }
+  
+  .snap-center {
+    scroll-snap-align: center;
+  }
+  
+  .snap-mandatory {
+    scroll-snap-type: x mandatory;
+  }
+
+  /* Custom smooth scroll behavior */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  /* Fuel station drawer animations */
+  .drawer-transition {
+    transition: height 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Touch-friendly grab cursor */
+  .cursor-grab {
+    cursor: grab;
+  }
+  
+  .cursor-grab:active, .active\:cursor-grabbing:active {
+    cursor: grabbing;
+  }
+
+  /* Toast animations */
+  @keyframes slide-in-right {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  .animate-slide-in-right {
+    animation: slide-in-right 0.3s ease-out;
+  }
+
+  /* Hide scrollbars for smooth scrolling */
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;  /* Chrome, Safari and Opera */
+  }
+
+  /* Smooth momentum scrolling for iOS */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Snap scrolling for station cards */
+  .snap-scroll {
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+  }
+
+  .snap-center {
+    scroll-snap-align: center;
+  }
+
+  /* Mapbox GL styles */
+  .mapboxgl-map {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  .mapboxgl-popup {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  
+  .mapboxgl-popup-content {
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .custom-marker {
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .custom-marker:hover {
+    transform: scale(1.1);
+  }
   
   .gradient-text {
     background: linear-gradient(120deg, #059669 0%, #10b981 50%, #34d399 100%);
