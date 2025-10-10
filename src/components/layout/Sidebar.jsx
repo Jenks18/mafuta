@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
 import { sidebarNavigation } from '../../config/navigation.jsx';
+import Logo, { LogoMark, LogoWordmark } from '../common/Logo';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-
-  const toggleCollapsed = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  // Default to collapsed; expand on hover
+  const [isCollapsed, setIsCollapsed] = useState(true);
 
   return (
-    <div className={`${isCollapsed ? 'w-20' : 'w-80'} transition-all duration-300 ease-in-out bg-gradient-to-b from-emerald-50 via-green-50 to-emerald-100 border-r border-emerald-200/50 flex flex-col relative`}>
+    <div
+      className={`h-full flex-shrink-0 ${isCollapsed ? 'w-16' : 'w-80'} transition-all duration-300 ease-in-out bg-gradient-to-b from-emerald-50 via-green-50 to-emerald-100 border-r border-emerald-200/50 flex flex-col relative`}
+      onMouseEnter={() => setIsCollapsed(false)}
+      onMouseLeave={() => setIsCollapsed(true)}
+    >
       {/* Floating background elements for sidebar */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/4 left-1/4 w-16 h-16 bg-gradient-to-r from-emerald-300/20 to-green-300/10 rounded-full blur-xl"></div>
@@ -17,30 +19,19 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       </div>
 
       {/* Logo/Header */}
-      <div className="relative z-10 p-6 border-b border-emerald-200/50 backdrop-blur-sm bg-white/30">
+  <div className="relative z-10 p-4 border-b border-emerald-200/50">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-green-600 to-emerald-500 rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white font-bold text-xl">M</span>
-          </div>
-          {!isCollapsed && (
-            <div className="flex-1">
-              <h1 className="text-lg font-bold text-emerald-800">MafutaPass</h1>
-              <p className="text-xs text-emerald-600">Fuel Management</p>
+          {/* Collapsed: logo mark only; Expanded: show wordmark too */}
+          {isCollapsed ? (
+            <div className="mx-auto">
+      <LogoMark size={34} />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+      <LogoMark size={36} />
+      <LogoWordmark className="text-xl md:text-2xl" />
             </div>
           )}
-          <button
-            onClick={toggleCollapsed}
-            className="p-2 rounded-lg bg-white/50 hover:bg-white/70 text-emerald-700 hover:text-emerald-800 transition-all shadow-sm border border-emerald-200/50"
-          >
-            <svg 
-              className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-            </svg>
-          </button>
         </div>
       </div>
 

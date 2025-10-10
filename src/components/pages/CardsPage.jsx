@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useStore } from '../../store';
 import CardDetail from '../CardDetail';
+import CardDetailPage from './cards/CardDetailPage';
 
 const CardsPage = () => {
   const { cards, toggleCardActive, removeCard } = useStore();
@@ -21,6 +22,8 @@ const CardsPage = () => {
       removeCard(id);
     }
   };
+
+  const selectedCard = cards.find(c => c.id === selectedCardId);
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -91,6 +94,7 @@ const CardsPage = () => {
           </div>
 
           {/* Cards Container */}
+          {!selectedCardId ? (
           <div className="flex gap-6">
             {/* Cards List */}
             <div className="flex-1">
@@ -228,18 +232,25 @@ const CardsPage = () => {
               </div>
             </div>
 
-            {/* Card Detail Panel */}
+            {/* Card Detail Panel (compact) on large screens only) */}
             {selectedCardId && (
               <div className="hidden lg:block w-80">
                 <CardDetail 
-                  card={cards.find(c => c.id === selectedCardId)} 
+                  card={selectedCard} 
                   onToggle={toggleCardActive}
                   onRemove={handleCardDelete}
                 />
               </div>
             )}
           </div>
-        </div>
+          ) : (
+            <CardDetailPage 
+              card={selectedCard} 
+              onBack={() => setSelectedCardId(null)}
+              onToggleStatus={toggleCardActive}
+            />
+          )}
+  </div>
       </div>
     </div>
   );

@@ -134,7 +134,15 @@
 
   /* Mapbox GL styles */
   .mapboxgl-map {
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  position: relative;
+  width: 100% !important;
+  height: 100% !important;
+  }
+
+  /* Hide compass/rotation UI if injected */
+  .mapboxgl-ctrl-compass, .mapboxgl-ctrl .mapboxgl-ctrl-compass {
+    display: none !important;
   }
   
   .mapboxgl-popup {
@@ -147,13 +155,58 @@
     font-size: 14px;
   }
   
+  /* Ensure the WebGL canvas fills the container */
+  .mapboxgl-canvas {
+    width: 100% !important;
+    height: 100% !important;
+  display: block;
+  pointer-events: auto !important;
+  }
+  
   .custom-marker {
-    cursor: pointer;
-    transition: transform 0.2s ease;
+  cursor: pointer;
+  transition: transform 0.12s ease;
+  will-change: transform;
   }
   
   .custom-marker:hover {
-    transform: scale(1.1);
+  transform: scale(1.06);
+  }
+
+  /* Marker badge with pointer/tail */
+  .marker-badge {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  padding: 4px 8px;
+    border-radius: 9999px;
+    /* Darker emerald tint similar to bg-emerald-600/95 */
+    background: linear-gradient(180deg, rgba(4,120,87,0.96) 0%, rgba(6,95,70,0.96) 100%);
+    border: 1px solid rgba(6,95,70,0.85);
+    color: #fff;
+    font-weight: 700;
+  font-size: 11px;
+    box-shadow: 0 4px 10px rgba(6, 95, 70, 0.28);
+    pointer-events: auto;
+  }
+  /* Hover: slightly darker like hover:bg-emerald-700/95 */
+  .custom-marker:hover .marker-badge {
+    background: linear-gradient(180deg, rgba(6,95,70,0.98) 0%, rgba(6,78,59,0.98) 100%);
+    border-color: rgba(6,78,59,0.9);
+    box-shadow: 0 6px 12px rgba(6, 78, 59, 0.32);
+  }
+  .marker-badge .marker-text { line-height: 1; }
+  .marker-badge .marker-tail {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  bottom: -7px;
+  width: 12px;
+  height: 12px;
+    background: inherit;
+    clip-path: polygon(50% 100%, 0 0, 100% 0);
+    filter: drop-shadow(0 2px 4px rgba(5,150,105,0.25));
   }
   
   .gradient-text {

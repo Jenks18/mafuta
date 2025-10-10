@@ -3,7 +3,6 @@ import FindFuelDesktop from './FindFuel/FindFuelDesktop';
 import FindFuelMobile from './FindFuel/FindFuelMobile';
 import StationDetailPage from './StationDetailPage';
 import ClaimSuccessToast from './FindFuel/ClaimSuccessToast';
-import { useSupabaseStations } from '../../hooks/useSupabaseStations';
 
 const FindFuelPage = () => {
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
@@ -36,16 +35,13 @@ const FindFuelPage = () => {
     setTimeout(() => setShowClaimSuccess(false), 3000);
   };
 
-  // Load stations from Supabase (shell table) on page mount
-  const { loading, error } = useSupabaseStations();
-
   // If showing station detail, render that instead
   if (showStationDetail && selectedStationId) {
     return <StationDetailPage stationId={selectedStationId} onBack={handleBackToMap} />;
   }
 
   return (
-    <div className="flex-1 min-h-screen flex flex-col relative">
+    <>
       {isDesktop ? (
         <FindFuelDesktop 
           onStationDetail={handleMoreInfo}
@@ -57,12 +53,12 @@ const FindFuelPage = () => {
           onClaim={handleClaim}
         />
       )}
-
+      
       <ClaimSuccessToast 
         show={showClaimSuccess} 
         position={isDesktop ? 'desktop' : 'mobile'}
       />
-    </div>
+    </>
   );
 };
 

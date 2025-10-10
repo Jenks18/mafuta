@@ -21,14 +21,14 @@ const Layout = ({ children, activeTab, setActiveTab }) => {
       {/* Floating Background - applies to entire app */}
       <FloatingBackground />
       
-      <div className="min-h-screen flex bg-white">
+      <div className="h-screen w-screen flex overflow-hidden bg-white">
         {/* Desktop Sidebar */}
         {!isMobile && (
           <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
         )}
 
         {/* Main Content - matches original App.jsx structure */}
-        <main className={`flex-1 flex flex-col ${isMobile ? 'pb-16' : ''}`}>
+        <main className={`flex-1 flex flex-col min-h-0 overflow-hidden ${isMobile ? 'pb-16' : ''}`}>
           {children}
         </main>
       </div>

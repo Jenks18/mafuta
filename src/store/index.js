@@ -117,8 +117,8 @@ const transformedShellStations = shellStationsData.map((station, index) =>
   transformShellStation(station, index)
 );
 
-// Combine all stations
-const allStations = [...mockFuelStations, ...transformedShellStations];
+// Use only Shell Kenya stations by default; mock US data removed
+const allStations = [...transformedShellStations];
 
 export const useStore = create((set, get) => ({
   // Data

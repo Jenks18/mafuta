@@ -106,26 +106,41 @@ export const transformShellStation = (shellStation, index) => {
   const hasPremium = description.includes('V-Power');
   const extraOffer = hasPremium ? '10% cash back on Shell V-Power' : '9% cash back inside the store';
 
+  // Base price assumptions (USD per gallon) then converted in UI; adjust if real data exists
+  const base = 2.85;
+
   return {
     id: shellStation.id || `shell-${index + 1}`,
     name: shellStation.name || 'Shell Station',
     brand: 'Shell',
     address: shellStation.address ? shellStation.address.split('\n')[0] : 'Address not available',
     fullAddress: shellStation.address || '',
-    region: shellStation.region || 'Nairobi',
-    distance: '0.0 mi', // Will be calculated
-    price: 2.85, // Default Shell price
-    originalPrice: 3.15,
+  region: shellStation.region || 'Nairobi',
+  distance: '0.0 mi', // Will be calculated
+  price: base, // Default Shell price
+  originalPrice: base * 1.105,
     cashback: 27,
     isOpen: true,
     coordinates,
     offers: [
-      { 
-        type: 'Regular', 
-        price: 2.85, 
-        originalPrice: 3.15, 
-        cashback: 27 
-      }
+      {
+        type: 'Regular',
+        price: base,
+        originalPrice: base * 1.105,
+        cashback: 27,
+      },
+      {
+        type: 'Midgrade',
+        price: base * 1.12,
+        originalPrice: base * 1.22,
+        cashback: 28,
+      },
+      {
+        type: hasPremium ? 'V-Power' : 'Premium',
+        price: base * 1.2,
+        originalPrice: base * 1.31,
+        cashback: 26,
+      },
     ],
     extraOffer,
     // Shell-specific data
@@ -135,7 +150,7 @@ export const transformShellStation = (shellStation, index) => {
     amenities,
     hours: '24/7', // Default, can be updated if available
     fuelTypes: {
-      vPower: description.includes('V-Power'),
+      vPower: hasPremium,
       diesel: description.includes('Diesel'),
       unleaded: description.includes('Unleaded'),
       truckDiesel: description.includes('Truck Diesel')

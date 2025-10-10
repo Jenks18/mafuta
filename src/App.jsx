@@ -15,7 +15,8 @@ import MapPage from './components/pages/MapPage'
 import DriversPage from './components/pages/DriversPage'
 import VehiclesPage from './components/pages/VehiclesPage'
 import PayrollPage from './components/pages/PayrollPage'
-
+import DashboardPage from './components/pages/DashboardPage'
+ 
 function App() {
   const [activeTab, setActiveTab] = useState('home')
   
@@ -45,7 +46,7 @@ function App() {
     switch (activeTab) {
       case 'home':
       case 'dashboard':
-        return <HomePage />
+        return <DashboardPage />
       case 'fuel':
         return <FindFuelPage />
       case 'transactions':
