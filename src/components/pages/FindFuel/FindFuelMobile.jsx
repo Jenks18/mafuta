@@ -3,7 +3,7 @@ import { useStore } from '../../../store';
 import StationCard from './StationCard';
 import StationList from './StationList';
 import MapControls from './MapControls';
-import { useMapbox } from './useMapbox';
+import { useMapboxMobile as useMapbox } from './useMapbox.mobile';
 
 const FindFuelMobile = ({ onStationDetail, onClaim }) => {
   const { fuelStations } = useStore();
