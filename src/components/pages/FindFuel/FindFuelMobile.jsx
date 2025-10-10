@@ -139,7 +139,7 @@ const FindFuelMobile = ({ onStationDetail, onClaim }) => {
 
           {/* Balance */}
           <div className="bg-emerald-500 border border-emerald-400 rounded-full px-4 py-3">
-            <span className="text-white font-medium text-sm">$0.00</span>
+            <span className="text-white font-medium text-sm">KES 0</span>
           </div>
 
           {/* Profile */}

@@ -41,6 +41,16 @@ function App() {
     setConfirmOpen(false) 
   }
 
+  // Allow child pages to navigate by dispatching a CustomEvent('app:navigate', { detail: 'tabKey' })
+  useEffect(() => {
+    const onNavigate = (e) => {
+      const key = e?.detail;
+      if (typeof key === 'string') setActiveTab(key);
+    };
+    window.addEventListener('app:navigate', onNavigate);
+    return () => window.removeEventListener('app:navigate', onNavigate);
+  }, []);
+
   // Page renderer function
   const renderPage = () => {
     switch (activeTab) {

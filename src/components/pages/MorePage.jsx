@@ -19,6 +19,18 @@ const MorePage = () => {
       <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
         <div className="p-6 max-w-3xl mx-auto space-y-8">
           <h1 className="text-2xl font-bold text-emerald-700">More</h1>
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'dashboard'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Dashboard</button>
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'fuel'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Find Fuel</button>
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'cards'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Cards</button>
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'transactions'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Transactions</button>
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'trucks-map'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Trucks Map</button>
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'drivers'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Drivers</button>
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'vehicles'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Vehicles</button>
+              <button onClick={()=>window.dispatchEvent(new CustomEvent('app:navigate',{detail:'payroll-overview'}))} className="px-3 py-2 rounded-lg border hover:border-emerald-300 text-gray-700 hover:text-emerald-700">Payroll</button>
+            </div>
+          </div>
         
         <div className="space-y-8">
           <section>

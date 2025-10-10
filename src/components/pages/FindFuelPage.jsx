@@ -6,16 +6,14 @@ import ClaimSuccessToast from './FindFuel/ClaimSuccessToast';
 import { useSupabaseStations } from '../../hooks/useSupabaseStations';
 
 const FindFuelPage = () => {
-  const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 1024);
+  const [isDesktop, setIsDesktop] = useState(typeof window !== 'undefined' ? window.innerWidth >= 1024 : true);
   const [showStationDetail, setShowStationDetail] = useState(false);
   const [selectedStationId, setSelectedStationId] = useState(null);
   const [showClaimSuccess, setShowClaimSuccess] = useState(false);
 
   // Handle window resize for responsive layout
   useEffect(() => {
-    const handleResize = () => {
-      setIsDesktop(window.innerWidth >= 1024);
-    };
+  const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
