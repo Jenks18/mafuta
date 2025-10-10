@@ -27,6 +27,8 @@ export const useMapboxMobile = (stations, onMarkerTap) => {
   const markers = useRef([]);
   const [loaded, setLoaded] = useState(false);
   const [visible, setVisible] = useState([]);
+  const routeSourceId = 'route-mobile';
+  const routeLayerId = 'route-mobile-layer';
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -101,7 +103,39 @@ export const useMapboxMobile = (stations, onMarkerTap) => {
     }
   };
 
-  return { mapContainer, flyToStation, searchArea, recenterMap, visibleStations: visible.map(idx => ({ station: stations[idx], index: idx })) };
+  const drawRouteToStation = (stationCoords) => {
+    if (!map.current || !stationCoords) return;
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition((pos) => {
+      const user = [pos.coords.longitude, pos.coords.latitude];
+      const data = {
+        type: 'Feature',
+        properties: {},
+        geometry: { type: 'LineString', coordinates: [user, stationCoords] }
+      };
+      if (!map.current.getSource(routeSourceId)) {
+        map.current.addSource(routeSourceId, { type: 'geojson', data });
+        map.current.addLayer({
+          id: routeLayerId,
+          type: 'line',
+          source: routeSourceId,
+          layout: { 'line-cap': 'round', 'line-join': 'round' },
+          paint: { 'line-color': '#2563eb', 'line-width': 3, 'line-dasharray': [2,2] }
+        });
+      } else {
+        map.current.getSource(routeSourceId).setData(data);
+      }
+    });
+  };
+
+  const clearRoute = () => {
+    try {
+      if (map.current?.getLayer(routeLayerId)) map.current.removeLayer(routeLayerId);
+      if (map.current?.getSource(routeSourceId)) map.current.removeSource(routeSourceId);
+    } catch {}
+  };
+
+  return { mapContainer, flyToStation, searchArea, recenterMap, drawRouteToStation, clearRoute, visibleStations: visible.map(idx => ({ station: stations[idx], index: idx })) };
 };
 
 export default useMapboxMobile;
