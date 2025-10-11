@@ -1,6 +1,5 @@
 import { create } from 'zustand'
 import { supabase } from '../lib/supabaseClient'
-import shellStationsData from '../data/shellStations.json'
 import { transformShellStation, sortStationsByDistance } from '../utils/locationUtils'
 
 // Mock data for demonstration
@@ -113,13 +112,7 @@ const mockFuelStations = [
   }
 ]
 
-// Transform and integrate Shell stations
-const transformedShellStations = shellStationsData.map((station, index) => 
-  transformShellStation(station, index)
-);
-
-// Use only Shell Kenya stations by default; mock US data removed
-const allStations = [...transformedShellStations];
+// Defer loading of large local stations JSON to reduce initial bundle size
 
 export const useStore = create((set, get) => ({
   // Auth
@@ -134,7 +127,7 @@ export const useStore = create((set, get) => ({
   cards: mockCards,
   transactions: mockTransactions,
   contacts: mockContacts,
-  fuelStations: allStations,
+  fuelStations: [],
   userLocation: { lat: -1.2921, lon: 36.8219 }, // Default Nairobi location
   profiles: [],
   
@@ -230,9 +223,22 @@ export const useStore = create((set, get) => ({
 
   addShellStations: (shellStations) => {
     const currentStations = get().fuelStations;
-    const transformedStations = shellStations.map((station, index) =>
-      transformShellStation(station, currentStations.length + index)
-    );
+    const transformedStations = shellStations.map((station, index) => {
+      // If station already in app shape (has coordinates array and brand), keep as-is
+      if (station && Array.isArray(station.coordinates) && station.brand) {
+  const brand = station.brand;
+  const base = (import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
+  const localDefault = brand && brand.toLowerCase() === 'shell' ? `${base}logos/shell.svg` : (brand ? `${base}logos/${brand.toLowerCase()}.png` : undefined);
+  const logoUrl = station.logoUrl || localDefault;
+        return { id: station.id ?? `station-${currentStations.length + index + 1}`, ...station, logoUrl };
+      }
+      // Otherwise transform from raw shell format
+      const t = transformShellStation(station, currentStations.length + index);
+  const brand = t.brand;
+  const base = (import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
+  const localDefault = brand && brand.toLowerCase() === 'shell' ? `${base}logos/shell.svg` : (brand ? `${base}logos/${brand.toLowerCase()}.png` : undefined);
+  return { ...t, logoUrl: t.logoUrl || localDefault };
+    });
     
     set({
       fuelStations: [...currentStations, ...transformedStations]
@@ -240,6 +246,20 @@ export const useStore = create((set, get) => ({
     
     // Sort by proximity after adding
     get().sortStationsByProximity();
+  },
+
+  // Load built-in Shell data lazily (dynamic import) as a local fallback
+  loadLocalShellStations: async () => {
+    try {
+      if (get().fuelStations.length > 0) return; // already loaded
+      const mod = await import('../data/shellStations.json');
+      const data = (mod?.default || mod) ?? [];
+      const transformed = data.map((station, index) => transformShellStation(station, index));
+      set({ fuelStations: transformed });
+      get().sortStationsByProximity();
+    } catch (e) {
+      // ignore
+    }
   },
 
   refreshStations: () => {

@@ -1,4 +1,5 @@
 import React from 'react';
+import LogoBadge from './LogoBadge';
 
 const StationCard = ({ 
   station, 
@@ -41,17 +42,23 @@ const StationCard = ({
     >
       <div className="flex items-start justify-between mb-3">
         <div className="flex items-start gap-3 min-w-0">
-          <img 
-            src={`/logos/${station.brand.toLowerCase()}.png`} 
-            alt={station.brand} 
-            className={variant === 'compact' ? 'w-8 h-8 rounded-lg' : 'w-10 h-10 rounded-lg'}
-            onError={(e) => e.target.style.display = 'none'} 
+          <LogoBadge
+            src={station.logoUrl}
+            brand={station.brand}
+            alt={`${station.brand || 'Station'} logo`}
+            size={variant === 'compact' ? 32 : 40}
+            text={(station.brand || 'S').slice(0,1)}
           />
           <div className="flex-1 min-w-0">
-            <h3 className={`font-bold text-gray-800 truncate ${variant === 'compact' ? 'text-base' : 'text-lg'}`}>
-              {station.brand || station.name}
+            {/* Top line: brand only */}
+            <h3 className={`font-semibold text-gray-800 truncate ${variant === 'compact' ? 'text-sm' : 'text-base'}`}>
+              {(station.brand || 'Shell').toString().trim()}
             </h3>
-            <p className="text-xs text-gray-600 truncate">{station.address}</p>
+            {/* Second line: station name (location) */}
+            {station.name && (
+              <p className="text-sm text-gray-900 font-medium truncate">{station.name}</p>
+            )}
+            {/* Third line: distance + open */}
             <p className="text-xs text-gray-600 mt-0.5">
               {station.distance} • <span className="text-emerald-600 font-medium">Open</span>
             </p>

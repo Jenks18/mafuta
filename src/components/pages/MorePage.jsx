@@ -3,6 +3,7 @@ import DriversPage from './DriversPage';
 import VehiclesPage from './VehiclesPage';
 import PayrollPage from './PayrollPage';
 import UsersPage from './UsersPage';
+import StationsAdmin from './StationsAdmin';
 import { useStore } from '../../store';
 
 const MorePage = () => {
@@ -58,6 +59,12 @@ const MorePage = () => {
                     <h3 className="text-lg font-semibold mb-2">Users</h3>
                     <p className="text-sm text-gray-600 mb-3">Invite and manage profiles.</p>
                     <div className="border rounded-lg overflow-hidden"><UsersPage /></div>
+                  </div>
+
+                  <div className="bg-white rounded-xl border border-gray-200 p-5 mt-6">
+                    <h3 className="text-lg font-semibold mb-2">Stations</h3>
+                    <p className="text-sm text-gray-600 mb-3">Set logos for stations (Shell and more).</p>
+                    <StationsAdmin />
                   </div>
             </div>
           </section>

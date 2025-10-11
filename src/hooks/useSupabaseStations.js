@@ -18,7 +18,7 @@ export const useSupabaseStations = () => {
       try {
         const { data, error } = await supabase
           .from('shell')
-          .select('id, brand, name, address, latitude, longitude, price_usd, original_price_usd, cashback_cents, extra_offer');
+          .select('id, brand, name, address, latitude, longitude, price_usd, original_price_usd, cashback_cents, extra_offer, logo_url');
         if (error) throw error;
         if (cancelled) return;
         const mapped = (data || []).map((row) => ({
@@ -30,6 +30,7 @@ export const useSupabaseStations = () => {
           originalPrice: row.original_price_usd ?? null,
           cashback: row.cashback_cents ?? 0,
           extraOffer: row.extra_offer || null,
+          logoUrl: row.logo_url || '',
           coordinates: [Number(row.longitude), Number(row.latitude)],
           distance: '',
           isOpen: true,

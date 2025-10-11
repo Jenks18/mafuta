@@ -7,7 +7,7 @@ const formattedMaskedNumber = (id) => {
   return `•••• •••• •••• ${last4}`;
 };
 
-const DigitalCard = ({ card, className = '', size = 'default' }) => {
+const DigitalCardBase = ({ card, className = '', size = 'default' }) => {
   if (!card) return null;
   const isCompact = size === 'compact';
   const isReal = size === 'real';
@@ -88,5 +88,8 @@ const DigitalCard = ({ card, className = '', size = 'default' }) => {
     </div>
   );
 };
+
+const DigitalCard = React.memo(DigitalCardBase);
+DigitalCard.displayName = 'DigitalCard';
 
 export default DigitalCard;

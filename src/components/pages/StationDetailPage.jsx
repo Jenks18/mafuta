@@ -1,7 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useStore } from '../../store';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+let mapboxModulePromise;
+const getMapbox = async () => {
+  if (!mapboxModulePromise) mapboxModulePromise = import('mapbox-gl');
+  const mod = await mapboxModulePromise;
+  return mod.default || mod;
+};
 
 const StationDetailPage = ({ stationId, onBack }) => {
   const { fuelStations } = useStore();
@@ -19,18 +23,22 @@ const StationDetailPage = ({ stationId, onBack }) => {
   const userPosRef = useRef(null);
 
   useEffect(() => {
-    if (!station || mapRef.current || !mapEl.current) return;
-    mapboxgl.accessToken = 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
-    const [lng, lat] = station.coordinates || [36.8219, -1.2921];
-    const map = new mapboxgl.Map({
-      container: mapEl.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [lng, lat],
-      zoom: 14,
-      interactive: false
-    });
-    new mapboxgl.Marker({ color: '#059669' }).setLngLat([lng, lat]).addTo(map);
-    mapRef.current = map;
+    let cancelled = false;
+    (async () => {
+      if (!station || mapRef.current || !mapEl.current) return;
+      const mapboxgl = await getMapbox();
+      if (cancelled) return;
+      mapboxgl.accessToken = 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
+      const [lng, lat] = station.coordinates || [36.8219, -1.2921];
+      const map = new mapboxgl.Map({
+        container: mapEl.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [lng, lat],
+        zoom: 14,
+        interactive: false
+      });
+      new mapboxgl.Marker({ color: '#059669' }).setLngLat([lng, lat]).addTo(map);
+      mapRef.current = map;
     // Try to compute distance from user to station in KM using geolocation and draw a dashed route
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition((pos) => {
@@ -71,8 +79,10 @@ const StationDetailPage = ({ stationId, onBack }) => {
         } catch {}
       }, undefined, { enableHighAccuracy: true, timeout: 4000 });
     }
+    })();
     return () => {
-      try { map.remove(); } catch {}
+      cancelled = true;
+      try { mapRef.current?.remove(); } catch {}
       mapRef.current = null;
     };
   }, [station]);

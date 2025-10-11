@@ -1,6 +1,12 @@
 import React, { useRef, useEffect, useState } from 'react';
-import mapboxgl from 'mapbox-gl';
-import 'mapbox-gl/dist/mapbox-gl.css';
+// import 'mapbox-gl/dist/mapbox-gl.css'; // keep CSS loaded via global if needed
+
+let mapboxModulePromise;
+const getMapbox = async () => {
+  if (!mapboxModulePromise) mapboxModulePromise = import('mapbox-gl');
+  const mod = await mapboxModulePromise;
+  return mod.default || mod;
+};
 
 // Trucks Map: emptied and reworked baseline using fuel map mechanics
 mapboxgl.accessToken = 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
@@ -17,70 +23,76 @@ const MapPage = () => {
   const [selectedVin, setSelectedVin] = useState('');
 
   useEffect(() => {
-    if (mapRef.current || !mapEl.current) return;
-    const map = new mapboxgl.Map({
-      container: mapEl.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [36.8219, -1.2921],
-      zoom: 11,
-      dragRotate: false,
-      pitchWithRotate: false,
-      touchPitch: false,
-    });
-    map.on('load', () => {
-      try { map.resize(); } catch {}
-      // Render current trucks
-      trucks.forEach((t) => {
-        const el = document.createElement('div');
-        el.className = 'truck-marker';
-        el.style.display = 'flex';
-        el.style.alignItems = 'center';
-        el.style.gap = '6px';
-
-        const truckIcon = document.createElement('div');
-        truckIcon.style.width = '28px';
-        truckIcon.style.height = '28px';
-        truckIcon.style.borderRadius = '8px';
-        truckIcon.style.background = '#10b981';
-        truckIcon.style.boxShadow = '0 6px 18px rgba(16,185,129,0.35)';
-        truckIcon.style.display = 'flex';
-        truckIcon.style.alignItems = 'center';
-        truckIcon.style.justifyContent = 'center';
-        truckIcon.style.color = 'white';
-        truckIcon.style.fontWeight = '700';
-        truckIcon.style.fontSize = '12px';
-        truckIcon.textContent = '🚛';
-
-        const label = document.createElement('div');
-        label.style.background = '#ffffff';
-        label.style.border = '2px solid #111827';
-        label.style.borderRadius = '8px';
-        label.style.color = '#111827';
-        label.style.fontSize = '12px';
-        label.style.fontWeight = '700';
-        label.style.padding = '4px 8px';
-        label.style.whiteSpace = 'nowrap';
-        label.textContent = `VIN: ${t.vin}`;
-
-        el.appendChild(label);
-        el.appendChild(truckIcon);
-
-        const m = new mapboxgl.Marker({ element: el, anchor: 'center' })
-          .setLngLat(t.coords)
-          .setPopup(
-            new mapboxgl.Popup({ offset: 16, closeButton: false }).setHTML(
-              `<div class=\"text-sm\"><div class=\"font-semibold\">${t.id}</div><div>Driver: ${t.driver}</div><div>Speed: ${t.speed} km/h</div></div>`
-            )
-          )
-          .addTo(map);
-        markersRef.current.push(m);
+    let cancelled = false;
+    (async () => {
+      if (mapRef.current || !mapEl.current) return;
+      const mapboxgl = await getMapbox();
+      if (cancelled) return;
+      mapboxgl.accessToken = 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
+      const map = new mapboxgl.Map({
+        container: mapEl.current,
+        style: 'mapbox://styles/mapbox/streets-v12',
+        center: [36.8219, -1.2921],
+        zoom: 11,
+        dragRotate: false,
+        pitchWithRotate: false,
+        touchPitch: false,
       });
-    });
-    mapRef.current = map;
+      map.on('load', () => {
+        try { map.resize(); } catch {}
+        trucks.forEach((t) => {
+          const el = document.createElement('div');
+          el.className = 'truck-marker';
+          el.style.display = 'flex';
+          el.style.alignItems = 'center';
+          el.style.gap = '6px';
+
+          const truckIcon = document.createElement('div');
+          truckIcon.style.width = '28px';
+          truckIcon.style.height = '28px';
+          truckIcon.style.borderRadius = '8px';
+          truckIcon.style.background = '#10b981';
+          truckIcon.style.boxShadow = '0 6px 18px rgba(16,185,129,0.35)';
+          truckIcon.style.display = 'flex';
+          truckIcon.style.alignItems = 'center';
+          truckIcon.style.justifyContent = 'center';
+          truckIcon.style.color = 'white';
+          truckIcon.style.fontWeight = '700';
+          truckIcon.style.fontSize = '12px';
+          truckIcon.textContent = '🚛';
+
+          const label = document.createElement('div');
+          label.style.background = '#ffffff';
+          label.style.border = '2px solid #111827';
+          label.style.borderRadius = '8px';
+          label.style.color = '#111827';
+          label.style.fontSize = '12px';
+          label.style.fontWeight = '700';
+          label.style.padding = '4px 8px';
+          label.style.whiteSpace = 'nowrap';
+          label.textContent = `VIN: ${t.vin}`;
+
+          el.appendChild(label);
+          el.appendChild(truckIcon);
+
+          const m = new mapboxgl.Marker({ element: el, anchor: 'center' })
+            .setLngLat(t.coords)
+            .setPopup(
+              new mapboxgl.Popup({ offset: 16, closeButton: false }).setHTML(
+                `<div class=\"text-sm\"><div class=\"font-semibold\">${t.id}</div><div>Driver: ${t.driver}</div><div>Speed: ${t.speed} km/h</div></div>`
+              )
+            )
+            .addTo(map);
+          markersRef.current.push(m);
+        });
+      });
+      mapRef.current = map;
+    })();
     return () => {
+      cancelled = true;
       markersRef.current.forEach((m) => m.remove());
       markersRef.current = [];
-      try { map.remove(); } catch {}
+      try { mapRef.current?.remove(); } catch {}
       mapRef.current = null;
     };
   }, []);

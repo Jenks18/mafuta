@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import './App.css'
 import { useStore } from './store'
 import ConfirmDialog from './components/ConfirmDialog'
 
-// Import the new modular components
+// Layout kept static; pages are lazily loaded for code-splitting
 import Layout from './components/layout/Layout'
-import HomePage from './components/pages/HomePage'
-import FindFuelPage from './components/pages/FindFuelPage'
-import TransactionsPage from './components/pages/TransactionsPage'
-import CardsPage from './components/pages/CardsPage'
-import MorePage from './components/pages/MorePage'
-import RewardsPage from './components/pages/RewardsPage'
-import MapPage from './components/pages/MapPage'
-import DriversPage from './components/pages/DriversPage'
-import VehiclesPage from './components/pages/VehiclesPage'
-import PayrollPage from './components/pages/PayrollPage'
-import DashboardPage from './components/pages/DashboardPage'
+const HomePage = lazy(() => import('./components/pages/HomePage'))
+const FindFuelPage = lazy(() => import('./components/pages/FindFuelPage'))
+const TransactionsPage = lazy(() => import('./components/pages/TransactionsPage'))
+const CardsPage = lazy(() => import('./components/pages/CardsPage'))
+const MorePage = lazy(() => import('./components/pages/MorePage'))
+const RewardsPage = lazy(() => import('./components/pages/RewardsPage'))
+const MapPage = lazy(() => import('./components/pages/MapPage'))
+const DriversPage = lazy(() => import('./components/pages/DriversPage'))
+const VehiclesPage = lazy(() => import('./components/pages/VehiclesPage'))
+const PayrollPage = lazy(() => import('./components/pages/PayrollPage'))
+const DashboardPage = lazy(() => import('./components/pages/DashboardPage'))
  
 function App() {
   const [activeTab, setActiveTab] = useState('home')
@@ -56,22 +56,22 @@ function App() {
     switch (activeTab) {
       case 'home':
       case 'dashboard':
-        return <DashboardPage />
+  return <DashboardPage />
       case 'fuel':
-        return <FindFuelPage />
+  return <FindFuelPage />
       case 'transactions':
-        return <TransactionsPage />
+  return <TransactionsPage />
       case 'card':
       case 'cards':
-        return <CardsPage />
+  return <CardsPage />
       case 'map':
       case 'trucks-map':
-        return <MapPage />
+  return <MapPage />
       case 'more':
-        return <MorePage />
+  return <MorePage />
       case 'rewards':
       case 'refer':
-        return <RewardsPage />
+  return <RewardsPage />
       case 'drivers':
         return (
           <div className="flex-1 overflow-y-auto">
@@ -175,7 +175,9 @@ function App() {
 
   return (
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      {renderPage()}
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center text-gray-500">Loading…</div>}>
+        {renderPage()}
+      </Suspense>
       
       {/* Confirm Dialog */}
       {confirmOpen && (
