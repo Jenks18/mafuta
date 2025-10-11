@@ -73,7 +73,7 @@ const MoreInfo = ({ station }) => {
       <Section title="Your card">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           <div className="md:col-span-1 md:sticky md:top-20">
-            <DigitalCard card={primaryCard} size="compact" className="md:max-w-sm" />
+            <DigitalCard card={primaryCard} size="real" className="md:max-w-sm" />
           </div>
           <div className="md:col-span-2">
             <CardSummary card={primaryCard} />

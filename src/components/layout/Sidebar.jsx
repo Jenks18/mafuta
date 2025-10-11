@@ -1,16 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { sidebarNavigation } from '../../config/navigation.jsx';
 import Logo, { LogoMark, LogoWordmark } from '../common/Logo';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
-  // Default to collapsed; expand on hover
+  // Default to collapsed; expand on hover/touch
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const collapseTimerRef = useRef(null);
+
+  useEffect(() => () => clearTimeout(collapseTimerRef.current), []);
+
+  const expand = () => {
+    clearTimeout(collapseTimerRef.current);
+    setIsCollapsed(false);
+  };
+  const collapse = () => {
+    clearTimeout(collapseTimerRef.current);
+    setIsCollapsed(true);
+  };
+  const touchPeek = () => {
+    // Simulate hover on touch devices (iPad): tap to peek for 3 seconds
+    expand();
+    collapseTimerRef.current = setTimeout(() => setIsCollapsed(true), 3000);
+  };
 
   return (
     <div
       className={`h-full flex-shrink-0 ${isCollapsed ? 'w-16' : 'w-80'} transition-all duration-300 ease-in-out bg-gradient-to-b from-emerald-50 via-green-50 to-emerald-100 border-r border-emerald-200/50 flex flex-col relative`}
-      onMouseEnter={() => setIsCollapsed(false)}
-      onMouseLeave={() => setIsCollapsed(true)}
+      onMouseEnter={expand}
+      onMouseLeave={collapse}
+      onTouchStart={touchPeek}
+      onFocus={expand}
+      onBlur={collapse}
+      role="navigation"
+      aria-label="Main navigation"
+      tabIndex={0}
     >
       {/* Floating background elements for sidebar */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -36,7 +59,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 flex-1 overflow-y-auto p-4 space-y-6">
+  <nav className="relative z-10 flex-1 overflow-y-auto p-3 md:p-4 space-y-5 md:space-y-6">
         {sidebarNavigation.map((section, index) => (
           <div key={index}>
             {section.section && !isCollapsed && (

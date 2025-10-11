@@ -87,10 +87,10 @@ const CardDetailPage = ({ card, onBack, onToggleStatus }) => {
 
   {tab === 'overview' && (
   <>
-  {/* Digital Twin - compact, non-stretched */}
+  {/* Digital Twin - realistic, fixed aspect ratio */}
   <div className="flex justify-end">
-    <div className="w-full md:w-96">
-      <DigitalCard card={card} size="compact" className="mb-6" />
+    <div className="w-full flex justify-center md:justify-end">
+      <DigitalCard card={card} size="real" className="mb-6" />
     </div>
   </div>
   {/* Header card status */}
@@ -177,9 +177,9 @@ const CardDetailPage = ({ card, onBack, onToggleStatus }) => {
 
         {tab === 'more' && (
           <div className="space-y-6">
-            {/* Digital Twin compact */}
-            <div className="w-full md:w-80">
-              <DigitalCard card={card} size="compact" />
+            {/* Realistic credit card presentation */}
+            <div className="w-full flex justify-center md:justify-start">
+              <DigitalCard card={card} size="real" className="mb-2" />
             </div>
             {/* Icon tile like your screenshot */}
             <div className="bg-white rounded-2xl border border-gray-200 p-5 flex items-start gap-4">

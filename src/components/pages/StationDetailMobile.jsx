@@ -48,7 +48,7 @@ const StationDetailMobile = ({ stationId, onBack, onClaim }) => {
         </div>
 
         {/* Card twin */}
-        <DigitalCard card={card} size="compact" />
+  <DigitalCard card={card} size="real" />
       </div>
 
       {/* Sticky claim */}
