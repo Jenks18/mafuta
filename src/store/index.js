@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { supabase } from '../lib/supabaseClient'
 import shellStationsData from '../data/shellStations.json'
 import { transformShellStation, sortStationsByDistance } from '../utils/locationUtils'
 
@@ -121,6 +122,9 @@ const transformedShellStations = shellStationsData.map((station, index) =>
 const allStations = [...transformedShellStations];
 
 export const useStore = create((set, get) => ({
+  // Auth
+  user: null,
+  authInitialized: false,
   // Data
   referralCode: 'FUEL2024',
   earnings: 125.50,
@@ -132,6 +136,7 @@ export const useStore = create((set, get) => ({
   contacts: mockContacts,
   fuelStations: allStations,
   userLocation: { lat: -1.2921, lon: 36.8219 }, // Default Nairobi location
+  profiles: [],
   
   // UI State
   contactQuery: '',
@@ -247,5 +252,71 @@ export const useStore = create((set, get) => ({
       style: 'currency',
       currency: 'USD'
     }).format(amount)
+  },
+
+  // Auth actions (Supabase-aware with mock fallback)
+  initAuth: async () => {
+    try {
+      if (supabase) {
+        const { data: { session } } = await supabase.auth.getSession();
+        set({ user: session?.user || null, authInitialized: true });
+        supabase.auth.onAuthStateChange((_event, session2) => {
+          set({ user: session2?.user || null, authInitialized: true });
+        });
+        return;
+      }
+    } catch {}
+    set({ user: null, authInitialized: true });
+  },
+
+  loginMock: (user) => set({ user }),
+  logoutMock: () => set({ user: null }),
+
+  // Profiles CRUD (Supabase `profiles` table suggested: id uuid PK, email text, full_name text, role text, org_id uuid)
+  loadProfiles: async () => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
+        if (!error) { set({ profiles: data || [] }); return; }
+      }
+    } catch {}
+    // Mock fallback
+    set({ profiles: [
+      { id: '1', email: 'owner@demo.app', full_name: 'Owner User', role: 'owner' },
+      { id: '2', email: 'admin@demo.app', full_name: 'Admin User', role: 'admin' },
+    ]});
+  },
+
+  upsertProfile: async (p) => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase.from('profiles').upsert(p).select('*');
+        if (!error) {
+          await get().loadProfiles();
+          return data?.[0];
+        }
+      }
+    } catch {}
+    // Mock add/update
+    set((state) => {
+      const exists = state.profiles.find((x) => x.id === p.id);
+      if (exists) {
+        return { profiles: state.profiles.map((x) => x.id === p.id ? { ...exists, ...p } : x) };
+      }
+      return { profiles: [{ ...p, id: String(Date.now()) }, ...state.profiles] };
+    });
+  },
+
+  deleteProfile: async (id) => {
+    try {
+      if (supabase) {
+        const { error } = await supabase.from('profiles').delete().eq('id', id);
+        if (!error) {
+          set((state) => ({ profiles: state.profiles.filter((x) => x.id !== id) }));
+          return;
+        }
+      }
+    } catch {}
+    set((state) => ({ profiles: state.profiles.filter((x) => x.id !== id) }));
   }
 }))

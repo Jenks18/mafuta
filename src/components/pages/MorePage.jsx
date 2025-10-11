@@ -2,6 +2,7 @@ import React from 'react';
 import DriversPage from './DriversPage';
 import VehiclesPage from './VehiclesPage';
 import PayrollPage from './PayrollPage';
+import UsersPage from './UsersPage';
 import { useStore } from '../../store';
 
 const MorePage = () => {
@@ -51,6 +52,13 @@ const MorePage = () => {
             <h2 className="text-xl font-semibold text-gray-800 mb-4">Payroll System</h2>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
               <PayrollPage />
+
+                  {/* Quick link: Users admin */}
+                  <div className="bg-white rounded-xl border border-gray-200 p-5">
+                    <h3 className="text-lg font-semibold mb-2">Users</h3>
+                    <p className="text-sm text-gray-600 mb-3">Invite and manage profiles.</p>
+                    <div className="border rounded-lg overflow-hidden"><UsersPage /></div>
+                  </div>
             </div>
           </section>
         </div>
