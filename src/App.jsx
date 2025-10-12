@@ -35,6 +35,13 @@ import DashboardPage from './components/pages/DashboardPage'
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
+// Debug logging
+console.log('🔍 Clerk Key Check:', {
+  keyExists: !!clerkPubKey,
+  keyPrefix: clerkPubKey?.substring(0, 15),
+  envMode: import.meta.env.MODE
+});
+
 function AppRoutes() {
   return (
     <Routes>
@@ -112,17 +119,34 @@ function AppRoutes() {
 }
 
 function App() {
+  // Debug: Log environment variables
+  console.log('🔑 Environment Check:', {
+    hasClerkKey: !!clerkPubKey,
+    clerkKeyStart: clerkPubKey?.substring(0, 20),
+    mode: import.meta.env.MODE,
+    dev: import.meta.env.DEV
+  });
+
   if (!clerkPubKey) {
     return (
       <div style={{ padding: '40px', textAlign: 'center' }}>
         <h1>⚠️ Configuration Required</h1>
         <p>Please add VITE_CLERK_PUBLISHABLE_KEY to your .env file</p>
+        <p style={{ fontSize: '12px', color: '#666', marginTop: '16px' }}>
+          Check CLERK_CONFIGURATION.md for setup instructions
+        </p>
       </div>
     );
   }
 
   return (
-    <ClerkProvider publishableKey={clerkPubKey}>
+    <ClerkProvider 
+      publishableKey={clerkPubKey}
+      afterSignInUrl="/onboarding"
+      afterSignUpUrl="/onboarding"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+    >
       <BrowserRouter>
         <AppRoutes />
       </BrowserRouter>
