@@ -17,12 +17,36 @@ export const ACCOUNT_TYPES = {
 // ==========================================
 
 export const FLEET_ROLES = {
-  PLATFORM_ADMIN: 'platform_admin',   // Platform owner (you)
-  FLEET_ADMIN: 'fleet_admin',         // Company owner
-  FLEET_MANAGER: 'fleet_manager',     // Operations manager
-  DRIVER: 'driver',                    // Vehicle driver
-  ACCOUNTANT: 'accountant',            // Finance staff
-  DISPATCHER: 'dispatcher',            // Route planner
+  OWNER: {
+    value: 'owner',
+    label: 'Fleet Owner',
+    icon: '👔',
+    description: 'Full control over company and billing'
+  },
+  MANAGER: {
+    value: 'manager',
+    label: 'Fleet Manager',
+    icon: '📊',
+    description: 'Manage vehicles, drivers, and transactions'
+  },
+  DRIVER: {
+    value: 'driver',
+    label: 'Driver',
+    icon: '🚗',
+    description: 'Record fuel purchases and view assigned vehicles'
+  },
+  ACCOUNTANT: {
+    value: 'accountant',
+    label: 'Accountant',
+    icon: '💼',
+    description: 'View financial reports and export data'
+  },
+  DISPATCHER: {
+    value: 'dispatcher',
+    label: 'Dispatcher',
+    icon: '📍',
+    description: 'Manage routes and track vehicle locations'
+  }
 };
 
 // ==========================================
@@ -30,9 +54,18 @@ export const FLEET_ROLES = {
 // ==========================================
 
 export const INDIVIDUAL_ROLES = {
-  CONSUMER: 'consumer',         // Standard user
-  PREMIUM: 'premium',           // Premium subscriber
-  BUSINESS: 'business',         // Small business owner (personal account)
+  CONSUMER: {
+    value: 'consumer',
+    label: 'Personal User',
+    icon: '🚗',
+    description: 'Standard account with basic features'
+  },
+  PREMIUM: {
+    value: 'premium',
+    label: 'Premium User',
+    icon: '⭐',
+    description: 'Advanced features and rewards'
+  }
 };
 
 // ==========================================
@@ -41,36 +74,36 @@ export const INDIVIDUAL_ROLES = {
 
 export const FLEET_PERMISSIONS = {
   // Vehicle management
-  canAddVehicle: ['platform_admin', 'fleet_admin', 'fleet_manager'],
-  canEditVehicle: ['platform_admin', 'fleet_admin', 'fleet_manager'],
-  canDeleteVehicle: ['platform_admin', 'fleet_admin'],
-  canViewAllVehicles: ['platform_admin', 'fleet_admin', 'fleet_manager', 'accountant', 'dispatcher'],
+  canAddVehicle: ['owner', 'manager'],
+  canEditVehicle: ['owner', 'manager'],
+  canDeleteVehicle: ['owner'],
+  canViewAllVehicles: ['owner', 'manager', 'accountant', 'dispatcher'],
   canViewAssignedVehicle: ['driver'],
   
   // Driver management
-  canInviteDriver: ['platform_admin', 'fleet_admin', 'fleet_manager'],
-  canRemoveDriver: ['platform_admin', 'fleet_admin'],
-  canViewAllDrivers: ['platform_admin', 'fleet_admin', 'fleet_manager'],
+  canInviteDriver: ['owner', 'manager'],
+  canRemoveDriver: ['owner'],
+  canViewAllDrivers: ['owner', 'manager'],
   
   // Transaction management
-  canRecordFuelPurchase: ['platform_admin', 'fleet_admin', 'fleet_manager', 'driver'],
-  canApprovePurchase: ['platform_admin', 'fleet_admin', 'fleet_manager'],
-  canViewAllTransactions: ['platform_admin', 'fleet_admin', 'fleet_manager', 'accountant'],
+  canRecordFuelPurchase: ['owner', 'manager', 'driver'],
+  canApprovePurchase: ['owner', 'manager'],
+  canViewAllTransactions: ['owner', 'manager', 'accountant'],
   canViewOwnTransactions: ['driver'],
   
   // Company management
-  canManageCompany: ['platform_admin', 'fleet_admin'],
-  canInviteManagers: ['platform_admin', 'fleet_admin'],
-  canSetSpendingLimits: ['platform_admin', 'fleet_admin', 'fleet_manager'],
+  canManageCompany: ['owner'],
+  canInviteManagers: ['owner'],
+  canSetSpendingLimits: ['owner', 'manager'],
   
   // Reports & analytics
-  canViewFinancialReports: ['platform_admin', 'fleet_admin', 'fleet_manager', 'accountant'],
-  canExportData: ['platform_admin', 'fleet_admin', 'accountant'],
-  canViewDriverPerformance: ['platform_admin', 'fleet_admin', 'fleet_manager', 'dispatcher'],
+  canViewFinancialReports: ['owner', 'manager', 'accountant'],
+  canExportData: ['owner', 'accountant'],
+  canViewDriverPerformance: ['owner', 'manager', 'dispatcher'],
   
   // Maintenance
-  canScheduleMaintenance: ['platform_admin', 'fleet_admin', 'fleet_manager'],
-  canViewMaintenance: ['platform_admin', 'fleet_admin', 'fleet_manager', 'driver'],
+  canScheduleMaintenance: ['owner', 'manager'],
+  canViewMaintenance: ['owner', 'manager', 'driver'],
 };
 
 // ==========================================
@@ -79,26 +112,26 @@ export const FLEET_PERMISSIONS = {
 
 export const INDIVIDUAL_PERMISSIONS = {
   // Transaction management
-  canCreateTransaction: ['consumer', 'premium', 'business'],
-  canViewOwnTransactions: ['consumer', 'premium', 'business'],
-  canExportTransactions: ['premium', 'business'],
+  canCreateTransaction: ['consumer', 'premium'],
+  canViewOwnTransactions: ['consumer', 'premium'],
+  canExportTransactions: ['premium'],
   
   // Cards
-  canManageCards: ['consumer', 'premium', 'business'],
-  canHaveMultipleCards: ['premium', 'business'],
+  canManageCards: ['consumer', 'premium'],
+  canHaveMultipleCards: ['premium'],
   
   // Rewards
-  canEarnRewards: ['consumer', 'premium', 'business'],
-  canRedeemRewards: ['consumer', 'premium', 'business'],
-  canViewPremiumRewards: ['premium', 'business'],
+  canEarnRewards: ['consumer', 'premium'],
+  canRedeemRewards: ['consumer', 'premium'],
+  canViewPremiumRewards: ['premium'],
   
   // Analytics
-  canViewBasicAnalytics: ['consumer', 'premium', 'business'],
-  canViewAdvancedAnalytics: ['premium', 'business'],
+  canViewBasicAnalytics: ['consumer', 'premium'],
+  canViewAdvancedAnalytics: ['premium'],
   
   // Features
-  canAccessPriceAlerts: ['premium', 'business'],
-  canAccessRouteOptimization: ['premium', 'business'],
+  canAccessPriceAlerts: ['premium'],
+  canAccessRouteOptimization: ['premium'],
   canAccessConcierge: ['premium'],
 };
 
@@ -151,9 +184,9 @@ export function getRolesForAccountType(accountType) {
  */
 export function getDefaultRole(accountType) {
   if (accountType === ACCOUNT_TYPES.FLEET) {
-    return FLEET_ROLES.DRIVER; // Most fleet users start as drivers
+    return FLEET_ROLES.OWNER.value; // First user is typically the owner
   } else if (accountType === ACCOUNT_TYPES.INDIVIDUAL) {
-    return INDIVIDUAL_ROLES.CONSUMER;
+    return INDIVIDUAL_ROLES.CONSUMER.value;
   }
   return null;
 }
@@ -163,14 +196,14 @@ export function getDefaultRole(accountType) {
  */
 export function isFleetAdmin(accountType, userRole) {
   return accountType === ACCOUNT_TYPES.FLEET && 
-         (userRole === FLEET_ROLES.FLEET_ADMIN || userRole === FLEET_ROLES.PLATFORM_ADMIN);
+         (userRole === FLEET_ROLES.OWNER.value || userRole === FLEET_ROLES.MANAGER.value);
 }
 
 /**
  * Check if user is platform admin
  */
 export function isPlatformAdmin(userRole) {
-  return userRole === FLEET_ROLES.PLATFORM_ADMIN;
+  return userRole === FLEET_ROLES.OWNER.value;
 }
 
 // ==========================================

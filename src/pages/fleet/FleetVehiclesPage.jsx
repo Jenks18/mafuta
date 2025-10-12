@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useAuthenticatedSupabase } from '../../lib/supabaseAuth';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { hasFleetPermission } from '../../config/userTypes';
 
 /**
@@ -19,8 +19,12 @@ export default function FleetVehiclesPage() {
   }, [filterStatus]);
 
   async function fetchVehicles() {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const supabase = useAuthenticatedSupabase();
       let query = supabase
         .from('vehicles')
         .select(`

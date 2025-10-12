@@ -1,93 +1,69 @@
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-import { getCurrentUserProfile } from '../../lib/supabaseAuth';
+import { useUserData } from '../../hooks/useUserData';
 
 /**
  * Onboarding Router - Detects onboarding state and routes accordingly
  */
 export default function OnboardingRouter() {
-  const { user, isLoaded } = useUser();
   const navigate = useNavigate();
+  const { user, profile, isLoaded, isOnboarded, accountType } = useUserData();
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    async function checkOnboardingStatus() {
-      if (!isLoaded || !user) {
-        setChecking(false);
-        return;
-      }
-
-      try {
-        // Check Clerk metadata first (faster)
-        // Note: Using unsafeMetadata for @clerk/clerk-react
-        const clerkOnboarded = user.unsafeMetadata?.onboarded;
-        const clerkAccountType = user.unsafeMetadata?.accountType;
-
-        console.log('🔍 Onboarding Check:', { clerkOnboarded, clerkAccountType });
-
-        // If not onboarded in Clerk, go to account type selection
-        if (!clerkOnboarded && !clerkAccountType) {
-          console.log('→ Redirecting to account type selection');
-          navigate('/onboarding/account-type');
-          setChecking(false);
-          return;
-        }
-
-        // If account type selected but not fully onboarded
-        if (clerkAccountType && !clerkOnboarded) {
-          console.log('→ Redirecting to complete onboarding:', clerkAccountType);
-          if (clerkAccountType === 'fleet') {
-            navigate('/onboarding/fleet');
-          } else {
-            navigate('/onboarding/individual');
-          }
-          setChecking(false);
-          return;
-        }
-
-        // Try to check Supabase (but don't fail if it's not set up yet)
-        try {
-          const profile = await getCurrentUserProfile();
-          
-          if (!profile || !profile.onboarded) {
-            // User exists in Clerk but not Supabase, restart onboarding
-            console.log('→ Profile incomplete, restarting onboarding');
-            navigate('/onboarding/account-type');
-            setChecking(false);
-            return;
-          }
-
-          // Fully onboarded, go to appropriate dashboard
-          console.log('→ Fully onboarded, redirecting to dashboard');
-          if (profile.account_type === 'fleet') {
-            navigate('/fleet/dashboard');
-          } else {
-            navigate('/app/dashboard');
-          }
-        } catch (supabaseError) {
-          console.warn('⚠️ Supabase not configured yet:', supabaseError.message);
-          // If Supabase fails but user is onboarded in Clerk, still proceed
-          if (clerkOnboarded && clerkAccountType) {
-            if (clerkAccountType === 'fleet') {
-              navigate('/fleet/dashboard');
-            } else {
-              navigate('/app/dashboard');
-            }
-          } else {
-            navigate('/onboarding/account-type');
-          }
-        }
-      } catch (error) {
-        console.error('❌ Onboarding check error:', error);
-        navigate('/onboarding/account-type');
-      } finally {
-        setChecking(false);
-      }
+    if (!isLoaded) {
+      return;
     }
 
-    checkOnboardingStatus();
-  }, [isLoaded, user, navigate]);
+    if (!user) {
+      console.log('→ No user, redirecting to sign-in');
+      navigate('/sign-in');
+      setChecking(false);
+      return;
+    }
+
+    console.log('🔍 Onboarding Check:', { 
+      isOnboarded, 
+      accountType,
+      profile: profile ? 'loaded' : 'null' 
+    });
+
+    // Not onboarded at all - go to account type selection
+    if (!accountType) {
+      console.log('→ No account type, redirecting to selection');
+      navigate('/onboarding/account-type');
+      setChecking(false);
+      return;
+    }
+
+    // Account type selected but not fully onboarded
+    if (accountType && !isOnboarded) {
+      console.log('→ Account type selected, completing onboarding:', accountType);
+      if (accountType === 'fleet') {
+        navigate('/onboarding/fleet');
+      } else {
+        navigate('/onboarding/individual');
+      }
+      setChecking(false);
+      return;
+    }
+
+    // Fully onboarded - redirect to dashboard
+    if (isOnboarded) {
+      console.log('→ Fully onboarded, redirecting to dashboard');
+      if (accountType === 'fleet') {
+        navigate('/fleet/dashboard');
+      } else {
+        navigate('/app/dashboard');
+      }
+      setChecking(false);
+      return;
+    }
+
+    // Default fallback
+    navigate('/onboarding/account-type');
+    setChecking(false);
+  }, [isLoaded, user, profile, isOnboarded, accountType, navigate]);
 
   if (!isLoaded || checking) {
     return (
@@ -105,11 +81,6 @@ export default function OnboardingRouter() {
         </div>
       </div>
     );
-  }
-
-  if (!user) {
-    navigate('/sign-in');
-    return null;
   }
 
   return (

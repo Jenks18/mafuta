@@ -1,41 +1,15 @@
-import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
-import { getCurrentUserProfile } from '../../lib/supabaseAuth';
+import { useUserData } from '../../hooks/useUserData';
 
 /**
  * Protected Route - Ensures user is authenticated and onboarded
  * Redirects based on account type
  */
-export default function ProtectedRoute({ children, accountType = null, requireAuth = true }) {
-  const { isSignedIn, isLoaded, user } = useUser();
-  const [profile, setProfile] = useState(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function checkAccess() {
-      if (!isLoaded) return;
-      
-      if (!isSignedIn && requireAuth) {
-        setLoading(false);
-        return;
-      }
-
-      try {
-        const userProfile = await getCurrentUserProfile();
-        setProfile(userProfile);
-      } catch (error) {
-        console.error('Error checking profile:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    checkAccess();
-  }, [isSignedIn, isLoaded, requireAuth]);
+export default function ProtectedRoute({ children, accountType = null }) {
+  const { user, isLoaded, isOnboarded, accountType: userAccountType } = useUserData();
 
   // Still loading
-  if (!isLoaded || loading) {
+  if (!isLoaded) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -60,24 +34,27 @@ export default function ProtectedRoute({ children, accountType = null, requireAu
   }
 
   // Not signed in
-  if (!isSignedIn && requireAuth) {
+  if (!user) {
+    console.log('🔒 Not authenticated, redirecting to sign-in');
     return <Navigate to="/sign-in" replace />;
   }
 
   // Not onboarded
-  if (!profile?.onboarded) {
+  if (!isOnboarded) {
+    console.log('📝 Not onboarded, redirecting to onboarding');
     return <Navigate to="/onboarding" replace />;
   }
 
-  // Wrong account type
-  if (accountType && profile.account_type !== accountType) {
-    // Redirect to correct dashboard
-    if (profile.account_type === 'fleet') {
+  // Wrong account type - redirect to correct dashboard
+  if (accountType && userAccountType !== accountType) {
+    console.log(`🔀 Wrong account type (expected: ${accountType}, got: ${userAccountType})`);
+    if (userAccountType === 'fleet') {
       return <Navigate to="/fleet/dashboard" replace />;
     } else {
-      return <Navigate to="/dashboard" replace />;
+      return <Navigate to="/app/dashboard" replace />;
     }
   }
 
+  // All checks passed
   return children;
 }

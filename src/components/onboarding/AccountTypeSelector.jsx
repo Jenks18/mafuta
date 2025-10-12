@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { ACCOUNT_TYPES } from '../../config/userTypes';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 
 /**
  * Account Type Selection - First step after signup
@@ -28,10 +29,9 @@ export default function AccountTypeSelector() {
     setLoading(true);
     
     try {
-      console.log('📝 Updating user metadata...', { accountType });
+      console.log('📝 Saving account type...', { accountType });
       
-      // Save account type to Clerk metadata
-      // Note: Use unsafeMetadata for @clerk/clerk-react (not publicMetadata)
+      // 1. Save to Clerk metadata (primary source of truth)
       await user.update({
         unsafeMetadata: {
           accountType,
@@ -39,24 +39,34 @@ export default function AccountTypeSelector() {
         }
       });
 
-      console.log('✅ Metadata updated successfully');
+      console.log('✅ Clerk metadata updated');
+
+      // 2. Save to Supabase if configured
+      if (isSupabaseConfigured()) {
+        try {
+          const { error } = await supabase
+            .from('users')
+            .update({
+              account_type: accountType,
+              updated_at: new Date().toISOString()
+            })
+            .eq('clerk_user_id', user.id);
+
+          if (error) {
+            console.warn('⚠️ Supabase update failed:', error);
+          } else {
+            console.log('✅ Supabase updated');
+          }
+        } catch (supabaseError) {
+          console.warn('⚠️ Supabase not available:', supabaseError);
+        }
+      }
       
       // Route to fleet onboarding
       navigate('/onboarding/fleet');
     } catch (error) {
       console.error('❌ Error selecting account type:', error);
-      console.error('Error details:', {
-        message: error.message,
-        name: error.name,
-        stack: error.stack
-      });
-      
-      // More specific error message
-      if (error.message?.includes('publicMetadata')) {
-        alert('Unable to save account type. Please ensure you are signed in and try again.');
-      } else {
-        alert('Something went wrong: ' + (error.message || 'Please try again'));
-      }
+      alert('Something went wrong: ' + (error.message || 'Please try again'));
     } finally {
       setLoading(false);
     }

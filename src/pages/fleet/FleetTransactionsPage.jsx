@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useAuthenticatedSupabase } from '../../lib/supabaseAuth';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 import { hasFleetPermission } from '../../config/userTypes';
 
 /**
@@ -21,8 +21,12 @@ export default function FleetTransactionsPage() {
   }, [filter]);
 
   async function fetchTransactions() {
+    if (!isSupabaseConfigured()) {
+      setLoading(false);
+      return;
+    }
+
     try {
-      const supabase = useAuthenticatedSupabase();
       let query = supabase
         .from('fuel_transactions')
         .select(`
@@ -49,14 +53,14 @@ export default function FleetTransactionsPage() {
   }
 
   async function handleApprove(transactionId) {
+    if (!isSupabaseConfigured()) return;
+
     try {
-      const supabase = useAuthenticatedSupabase();
-      
       // Get current user's ID from users table
       const { data: currentUser } = await supabase
         .from('users')
         .select('id')
-        .eq('clerk_id', user.id)
+        .eq('clerk_user_id', user.id)
         .single();
 
       const { error } = await supabase
@@ -83,13 +87,13 @@ export default function FleetTransactionsPage() {
     const reason = prompt('Reason for rejection:');
     if (!reason) return;
 
+    if (!isSupabaseConfigured()) return;
+
     try {
-      const supabase = useAuthenticatedSupabase();
-      
       const { data: currentUser } = await supabase
         .from('users')
         .select('id')
-        .eq('clerk_id', user.id)
+        .eq('clerk_user_id', user.id)
         .single();
 
       const { error } = await supabase

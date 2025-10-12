@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { Link } from 'react-router-dom';
-import { useAuthenticatedSupabase, getUserCompany } from '../../lib/supabaseAuth';
+import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
+import { getCompanyData } from '../../lib/supabaseAuth';
 import { hasFleetPermission } from '../../config/userTypes';
 
 /**
@@ -24,12 +25,18 @@ export default function FleetDashboard() {
 
   useEffect(() => {
     async function fetchDashboardData() {
-      try {
-        const supabase = useAuthenticatedSupabase();
+      if (!isSupabaseConfigured()) {
+        setLoading(false);
+        return;
+      }
 
-        // Get company info
-        const companyData = await getUserCompany();
-        setCompany(companyData);
+      try {
+        // Get company info from user metadata
+        const companyId = user?.unsafeMetadata?.companyId;
+        if (companyId) {
+          const companyData = await getCompanyData(companyId);
+          setCompany(companyData);
+        }
 
         // Get vehicle stats
         const { data: vehicles } = await supabase
