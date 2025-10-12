@@ -1,7 +1,7 @@
 // MAFUTA MULTI-TENANT APPLICATION
 // Supports both Fleet Management (B2B) and Individual Consumers (B2C)
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { ClerkProvider, SignIn, SignUp } from '@clerk/clerk-react';
+import { ClerkProvider, SignIn, SignUp, SignedIn, SignedOut } from '@clerk/clerk-react';
 import './App.css'
 
 // Onboarding
@@ -43,34 +43,114 @@ console.log('🔍 Clerk Key Check:', {
 });
 
 function AppRoutes() {
+  console.log('📍 AppRoutes rendering...');
+  
   return (
     <Routes>
-      {/* Public Landing - Redirect to sign-in or dashboard based on auth */}
-      <Route path="/" element={<Navigate to="/sign-in" replace />} />
+      {/* Public Landing - Redirect based on auth status */}
+      <Route 
+        path="/" 
+        element={
+          <>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+            <SignedIn>
+              <Navigate to="/onboarding" replace />
+            </SignedIn>
+          </>
+        } 
+      />
 
       {/* Auth Routes */}
       <Route 
         path="/sign-in/*" 
         element={
-          <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-            <SignIn routing="path" path="/sign-in" afterSignInUrl="/onboarding" signUpUrl="/sign-up" />
-          </div>
+          <>
+            <SignedOut>
+              <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute top-1/4 left-1/6 w-32 h-32 bg-gradient-to-r from-emerald-200/30 to-green-200/20 rounded-full blur-2xl"></div>
+                <div className="absolute top-3/4 right-1/6 w-48 h-48 bg-gradient-to-r from-green-200/20 to-emerald-200/15 rounded-full blur-2xl"></div>
+                <SignIn routing="path" path="/sign-in" afterSignInUrl="/onboarding" signUpUrl="/sign-up" />
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <Navigate to="/onboarding" replace />
+            </SignedIn>
+          </>
         } 
       />
       <Route 
         path="/sign-up/*" 
         element={
-          <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
-            <SignUp routing="path" path="/sign-up" afterSignUpUrl="/onboarding" signInUrl="/sign-in" />
-          </div>
+          <>
+            <SignedOut>
+              <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center relative overflow-hidden">
+                <div className="absolute top-1/4 left-1/6 w-32 h-32 bg-gradient-to-r from-emerald-200/30 to-green-200/20 rounded-full blur-2xl"></div>
+                <div className="absolute top-3/4 right-1/6 w-48 h-48 bg-gradient-to-r from-green-200/20 to-emerald-200/15 rounded-full blur-2xl"></div>
+                <SignUp routing="path" path="/sign-up" afterSignUpUrl="/onboarding" signInUrl="/sign-in" />
+              </div>
+            </SignedOut>
+            <SignedIn>
+              <Navigate to="/onboarding" replace />
+            </SignedIn>
+          </>
         } 
       />
 
-      {/* Onboarding Routes */}
-      <Route path="/onboarding" element={<OnboardingRouter />} />
-      <Route path="/onboarding/account-type" element={<AccountTypeSelector />} />
-      <Route path="/onboarding/fleet" element={<FleetOnboarding />} />
-      <Route path="/onboarding/individual" element={<IndividualOnboarding />} />
+      {/* Onboarding Routes - Protected */}
+      <Route 
+        path="/onboarding" 
+        element={
+          <>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+            <SignedIn>
+              <OnboardingRouter />
+            </SignedIn>
+          </>
+        } 
+      />
+      <Route 
+        path="/onboarding/account-type" 
+        element={
+          <>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+            <SignedIn>
+              <AccountTypeSelector />
+            </SignedIn>
+          </>
+        } 
+      />
+      <Route 
+        path="/onboarding/fleet" 
+        element={
+          <>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+            <SignedIn>
+              <FleetOnboarding />
+            </SignedIn>
+          </>
+        } 
+      />
+      <Route 
+        path="/onboarding/individual" 
+        element={
+          <>
+            <SignedOut>
+              <Navigate to="/sign-in" replace />
+            </SignedOut>
+            <SignedIn>
+              <IndividualOnboarding />
+            </SignedIn>
+          </>
+        } 
+      />
 
       {/* Fleet Routes (B2B) - Protected */}
       <Route
@@ -128,9 +208,18 @@ function App() {
   });
 
   if (!clerkPubKey) {
+    console.error('❌ Missing Clerk Publishable Key');
     return (
-      <div style={{ padding: '40px', textAlign: 'center' }}>
-        <h1>⚠️ Configuration Required</h1>
+      <div style={{ 
+        padding: '40px', 
+        textAlign: 'center',
+        minHeight: '100vh',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column'
+      }}>
+        <h1 style={{ color: '#dc2626', marginBottom: '16px' }}>⚠️ Configuration Required</h1>
         <p>Please add VITE_CLERK_PUBLISHABLE_KEY to your .env file</p>
         <p style={{ fontSize: '12px', color: '#666', marginTop: '16px' }}>
           Check CLERK_CONFIGURATION.md for setup instructions
@@ -139,9 +228,12 @@ function App() {
     );
   }
 
+  console.log('✅ Clerk key found, initializing provider...');
+
   return (
     <ClerkProvider 
       publishableKey={clerkPubKey}
+      routing="path"
       afterSignInUrl="/onboarding"
       afterSignUpUrl="/onboarding"
       signInUrl="/sign-in"
