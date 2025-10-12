@@ -1,6 +1,12 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useNavigate } from 'react-router-dom';
+imp      // 2. Update Clerk metadata
+      await user.update({
+        unsafeMetadata: {
+          accountType: 'individual',
+          onboarded: true,
+        }
+      });eNavigate } from 'react-router-dom';
 import { INDIVIDUAL_ROLES } from '../../config/userTypes';
 import { useAuthenticatedSupabase } from '../../lib/supabaseAuth';
 

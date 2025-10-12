@@ -31,8 +31,9 @@ export default function AccountTypeSelector() {
       console.log('📝 Updating user metadata...', { accountType });
       
       // Save account type to Clerk metadata
+      // Note: Use unsafeMetadata for @clerk/clerk-react (not publicMetadata)
       await user.update({
-        publicMetadata: {
+        unsafeMetadata: {
           accountType,
           onboarded: false, // Will be set to true after completing onboarding
         }

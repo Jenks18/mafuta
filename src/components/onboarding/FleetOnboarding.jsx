@@ -1,6 +1,12 @@
 import { useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { useNavigate } from 'react-router-dom';
+import { useUser } from '@clerk/clerk-reac      // 1. Mark onboarding complete in Clerk
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          onboarded: true,
+          role: selectedRole,
+        }
+      }); { useNavigate } from 'react-router-dom';
 import { FLEET_ROLES } from '../../config/userTypes';
 import { useAuthenticatedSupabase } from '../../lib/supabaseAuth';
 
@@ -76,7 +82,7 @@ export default function FleetOnboarding() {
 
       // 3. Update Clerk metadata
       await user.update({
-        publicMetadata: {
+        unsafeMetadata: {
           accountType: 'fleet',
           role: role,
           companyId: company.id,

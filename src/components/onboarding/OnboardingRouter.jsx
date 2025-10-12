@@ -20,8 +20,9 @@ export default function OnboardingRouter() {
 
       try {
         // Check Clerk metadata first (faster)
-        const clerkOnboarded = user.publicMetadata?.onboarded;
-        const clerkAccountType = user.publicMetadata?.accountType;
+        // Note: Using unsafeMetadata for @clerk/clerk-react
+        const clerkOnboarded = user.unsafeMetadata?.onboarded;
+        const clerkAccountType = user.unsafeMetadata?.accountType;
 
         console.log('🔍 Onboarding Check:', { clerkOnboarded, clerkAccountType });
 
