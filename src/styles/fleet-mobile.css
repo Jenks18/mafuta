@@ -1,0 +1,94 @@
+/* Mobile Responsive Styles for Fleet Management */
+
+/* Mobile-first media queries */
+@media (max-width: 768px) {
+  /* Fleet Dashboard - Mobile Grid */
+  .fleet-stats-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .fleet-table-container {
+    overflow-x: auto;
+  }
+
+  .fleet-table {
+    min-width: 600px;
+  }
+
+  /* Fleet Vehicles - Mobile Cards */
+  .vehicles-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .vehicle-card {
+    padding: 1rem !important;
+  }
+
+  /* Fleet Transactions - Mobile List */
+  .transactions-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .transaction-filters {
+    flex-direction: column !important;
+    gap: 0.5rem !important;
+  }
+
+  /* Hide sidebar by default on mobile */
+  .fleet-sidebar {
+    transform: translateX(-100%);
+  }
+
+  .fleet-sidebar.open {
+    transform: translateX(0);
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  /* Tablet sizes */
+  .fleet-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  .vehicles-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  /* Desktop sizes */
+  .fleet-stats-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .vehicles-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Responsive Typography */
+@media (max-width: 768px) {
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  .stat-value {
+    font-size: 1.75rem !important;
+  }
+}
+
+/* Responsive Padding */
+@media (max-width: 768px) {
+  .page-container {
+    padding: 1rem !important;
+  }
+
+  .card {
+    padding: 1rem !important;
+  }
+}

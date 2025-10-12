@@ -1,196 +1,133 @@
-import { useState, useEffect, lazy, Suspense } from 'react'
+// MAFUTA MULTI-TENANT APPLICATION
+// Supports both Fleet Management (B2B) and Individual Consumers (B2C)
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ClerkProvider, SignIn, SignUp } from '@clerk/clerk-react';
 import './App.css'
-import { useStore } from './store'
-import ConfirmDialog from './components/ConfirmDialog'
 
-// Layout kept static; pages are lazily loaded for code-splitting
+// Onboarding
+import OnboardingRouter from './components/onboarding/OnboardingRouter';
+import AccountTypeSelector from './components/onboarding/AccountTypeSelector';
+import FleetOnboarding from './components/onboarding/FleetOnboarding';
+import IndividualOnboarding from './components/onboarding/IndividualOnboarding';
+
+// Protected Routes
+import ProtectedRoute from './components/auth/ProtectedRoute';
+
+// Fleet Layout & Pages (B2B)
+import FleetLayout from './components/layout/FleetLayout';
+import FleetDashboard from './pages/fleet/FleetDashboard';
+import FleetVehiclesPage from './pages/fleet/FleetVehiclesPage';
+import FleetTransactionsPage from './pages/fleet/FleetTransactionsPage';
+
+// Individual Pages (B2C) - Your existing pages
 import Layout from './components/layout/Layout'
-const HomePage = lazy(() => import('./components/pages/HomePage'))
-const FindFuelPage = lazy(() => import('./components/pages/FindFuelPage'))
-const TransactionsPage = lazy(() => import('./components/pages/TransactionsPage'))
-const CardsPage = lazy(() => import('./components/pages/CardsPage'))
-const MorePage = lazy(() => import('./components/pages/MorePage'))
-const RewardsPage = lazy(() => import('./components/pages/RewardsPage'))
-const MapPage = lazy(() => import('./components/pages/MapPage'))
-const DriversPage = lazy(() => import('./components/pages/DriversPage'))
-const VehiclesPage = lazy(() => import('./components/pages/VehiclesPage'))
-const PayrollPage = lazy(() => import('./components/pages/PayrollPage'))
-const DashboardPage = lazy(() => import('./components/pages/DashboardPage'))
- 
+import HomePage from './components/pages/HomePage'
+import FindFuelPage from './components/pages/FindFuelPage'
+import TransactionsPage from './components/pages/TransactionsPage'
+import CardsPage from './components/pages/CardsPage'
+import MorePage from './components/pages/MorePage'
+import RewardsPage from './components/pages/RewardsPage'
+import MapPage from './components/pages/MapPage'
+import DriversPage from './components/pages/DriversPage'
+import VehiclesPage from './components/pages/VehiclesPage'
+import PayrollPage from './components/pages/PayrollPage'
+import DashboardPage from './components/pages/DashboardPage'
+
+const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+
+function AppRoutes() {
+  return (
+    <Routes>
+      {/* Public Landing - Redirect to sign-in or dashboard based on auth */}
+      <Route path="/" element={<Navigate to="/sign-in" replace />} />
+
+      {/* Auth Routes */}
+      <Route 
+        path="/sign-in/*" 
+        element={
+          <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+            <SignIn routing="path" path="/sign-in" afterSignInUrl="/onboarding" signUpUrl="/sign-up" />
+          </div>
+        } 
+      />
+      <Route 
+        path="/sign-up/*" 
+        element={
+          <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+            <SignUp routing="path" path="/sign-up" afterSignUpUrl="/onboarding" signInUrl="/sign-in" />
+          </div>
+        } 
+      />
+
+      {/* Onboarding Routes */}
+      <Route path="/onboarding" element={<OnboardingRouter />} />
+      <Route path="/onboarding/account-type" element={<AccountTypeSelector />} />
+      <Route path="/onboarding/fleet" element={<FleetOnboarding />} />
+      <Route path="/onboarding/individual" element={<IndividualOnboarding />} />
+
+      {/* Fleet Routes (B2B) - Protected */}
+      <Route
+        path="/fleet/*"
+        element={
+          <ProtectedRoute accountType="fleet">
+            <FleetLayout>
+              <Routes>
+                <Route path="dashboard" element={<FleetDashboard />} />
+                <Route path="vehicles" element={<FleetVehiclesPage />} />
+                <Route path="transactions" element={<FleetTransactionsPage />} />
+                <Route path="drivers" element={<DriversPage />} />
+                <Route path="payroll" element={<PayrollPage />} />
+                <Route path="*" element={<Navigate to="/fleet/dashboard" replace />} />
+              </Routes>
+            </FleetLayout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Individual Routes (B2C) - Protected */}
+      <Route
+        path="/app/*"
+        element={
+          <ProtectedRoute accountType="individual">
+            <Layout>
+              <Routes>
+                <Route path="dashboard" element={<DashboardPage />} />
+                <Route path="find-fuel" element={<FindFuelPage />} />
+                <Route path="transactions" element={<TransactionsPage />} />
+                <Route path="cards" element={<CardsPage />} />
+                <Route path="rewards" element={<RewardsPage />} />
+                <Route path="map" element={<MapPage />} />
+                <Route path="more" element={<MorePage />} />
+                <Route path="*" element={<Navigate to="/app/dashboard" replace />} />
+              </Routes>
+            </Layout>
+          </ProtectedRoute>
+        }
+      />
+
+      {/* Catch all - redirect to sign in */}
+      <Route path="*" element={<Navigate to="/sign-in" replace />} />
+    </Routes>
+  );
+}
+
 function App() {
-  const [activeTab, setActiveTab] = useState('home')
-  
-  // Get shared state/actions from the store
-  const {
-    removeTransaction, removeCard
-  } = useStore()
-
-  const [confirmOpen, setConfirmOpen] = useState(false)
-  const [pendingDelete, setPendingDelete] = useState(null)
-
-  const handleConfirm = () => {
-    if (!pendingDelete) return setConfirmOpen(false)
-    if (pendingDelete.type === 'card') removeCard(pendingDelete.id)
-    if (pendingDelete.type === 'tx') removeTransaction(pendingDelete.id)
-    setPendingDelete(null)
-    setConfirmOpen(false)
-  }
-
-  const handleCancel = () => { 
-    setPendingDelete(null)
-    setConfirmOpen(false) 
-  }
-
-  // Allow child pages to navigate by dispatching a CustomEvent('app:navigate', { detail: 'tabKey' })
-  useEffect(() => {
-    const onNavigate = (e) => {
-      const key = e?.detail;
-      if (typeof key === 'string') setActiveTab(key);
-    };
-    window.addEventListener('app:navigate', onNavigate);
-    return () => window.removeEventListener('app:navigate', onNavigate);
-  }, []);
-
-  // Page renderer function
-  const renderPage = () => {
-    switch (activeTab) {
-      case 'home':
-      case 'dashboard':
-  return <DashboardPage />
-      case 'fuel':
-  return <FindFuelPage />
-      case 'transactions':
-  return <TransactionsPage />
-      case 'card':
-      case 'cards':
-  return <CardsPage />
-      case 'map':
-      case 'trucks-map':
-  return <MapPage />
-      case 'more':
-  return <MorePage />
-      case 'rewards':
-      case 'refer':
-  return <RewardsPage />
-      case 'drivers':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="p-6"><DriversPage /></div>
-            </div>
-          </div>
-        )
-      case 'vehicles':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="p-6"><VehiclesPage /></div>
-            </div>
-          </div>
-        )
-      case 'payroll-overview':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="p-6"><PayrollPage /></div>
-            </div>
-          </div>
-        )
-      case 'payroll-history':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="p-6"><PayrollPage /></div>
-            </div>
-          </div>
-        )
-      case 'statements':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">Statements - Coming Soon</div>
-            </div>
-          </div>
-        )
-      case 'payment-history':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">Payment History - Coming Soon</div>
-            </div>
-          </div>
-        )
-      case 'payment-methods':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">Payment Methods - Coming Soon</div>
-            </div>
-          </div>
-        )
-      case 'manage-api':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">API Tokens - Coming Soon</div>
-            </div>
-          </div>
-        )
-      case 'connect':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">Connect - Coming Soon</div>
-            </div>
-          </div>
-        )
-      case 'vehicles-cards':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">Vehicles/Cards - Coming Soon</div>
-            </div>
-          </div>
-        )
-      case 'support':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">Support - Coming Soon</div>
-            </div>
-          </div>
-        )
-      case 'logout':
-        return (
-          <div className="flex-1 overflow-y-auto">
-            <div className="relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full">
-              <div className="flex-1 flex items-center justify-center text-2xl text-gray-500">Logging out...</div>
-            </div>
-          </div>
-        )
-      default:
-        return <HomePage />
-    }
+  if (!clerkPubKey) {
+    return (
+      <div style={{ padding: '40px', textAlign: 'center' }}>
+        <h1>⚠️ Configuration Required</h1>
+        <p>Please add VITE_CLERK_PUBLISHABLE_KEY to your .env file</p>
+      </div>
+    );
   }
 
   return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      <Suspense fallback={<div className="flex-1 flex items-center justify-center text-gray-500">Loading…</div>}>
-        {renderPage()}
-      </Suspense>
-      
-      {/* Confirm Dialog */}
-      {confirmOpen && (
-        <ConfirmDialog
-          open={confirmOpen}
-          title="Confirm deletion"
-          message="Are you sure you want to delete this item?"
-          onConfirm={handleConfirm}
-          onCancel={handleCancel}
-        />
-      )}
-    </Layout>
-  )
+    <ClerkProvider publishableKey={clerkPubKey}>
+      <BrowserRouter>
+        <AppRoutes />
+      </BrowserRouter>
+    </ClerkProvider>
+  );
 }
 
 export default App
