@@ -8,8 +8,6 @@ const getMapbox = async () => {
   return mod.default || mod;
 };
 
-mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
-
 const MapPage = () => {
   const mapEl = useRef(null);
   const mapRef = useRef(null);
