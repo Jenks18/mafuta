@@ -63,7 +63,6 @@ export default function FleetVehiclesPage() {
   }
 
   return (
-    return (
     <div className="p-4 lg:p-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -83,13 +82,17 @@ export default function FleetVehiclesPage() {
         {['all', 'active', 'maintenance', 'inactive'].map((status) => (
           <button
             key={status}
-            onClick={() => setFilter(status)}
+            onClick={() => setFilterStatus(status)}
             className={`px-4 py-2 rounded-lg font-medium capitalize transition-colors text-sm lg:text-base ${
-              filter === status
+              filterStatus === status
                 ? 'bg-blue-600 text-white'
                 : 'bg-white text-gray-700 border border-gray-200 hover:bg-gray-50'
             }`}
           >
+            {status}
+          </button>
+        ))}
+      </div>
 
       {/* Vehicles Grid */}
       {vehicles.length === 0 ? (

@@ -93,4 +93,3 @@ const DigitalCard = React.memo(DigitalCardBase);
 DigitalCard.displayName = 'DigitalCard';
 
 export default DigitalCard;
-export default DigitalCard;
