@@ -135,11 +135,6 @@ function AuthenticatedApp() {
 }
 
 function App() {
-  console.log('🔑 Environment Check:', {
-    hasClerkKey: !!clerkPubKey,
-    clerkKeyStart: clerkPubKey?.substring(0, 20),
-    mode: import.meta.env.MODE
-  });
 
   if (!clerkPubKey) {
     return (

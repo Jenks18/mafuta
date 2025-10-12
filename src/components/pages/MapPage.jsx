@@ -8,8 +8,7 @@ const getMapbox = async () => {
   return mod.default || mod;
 };
 
-// Trucks Map: emptied and reworked baseline using fuel map mechanics
-mapboxgl.accessToken = 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
+mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
 
 const MapPage = () => {
   const mapEl = useRef(null);
@@ -28,7 +27,7 @@ const MapPage = () => {
       if (mapRef.current || !mapEl.current) return;
       const mapboxgl = await getMapbox();
       if (cancelled) return;
-      mapboxgl.accessToken = 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
+      mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN || 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
       const map = new mapboxgl.Map({
         container: mapEl.current,
         style: 'mapbox://styles/mapbox/streets-v12',
