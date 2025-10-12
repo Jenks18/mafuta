@@ -7,18 +7,29 @@ import { ACCOUNT_TYPES } from '../../config/userTypes';
  * Account Type Selection - First step after signup
  */
 export default function AccountTypeSelector() {
-  const { user } = useUser();
+  const { user, isLoaded } = useUser();
   const navigate = useNavigate();
-  const [selectedType, setSelectedType] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSelect = async (accountType) => {
-    try {
-      // For now, only support Fleet Management
-      if (accountType !== ACCOUNT_TYPES.FLEET) {
-        alert('Personal account coming soon! Please select Fleet Management for now.');
-        return;
-      }
+    // Check if user is loaded
+    if (!isLoaded || !user) {
+      console.error('User not loaded yet');
+      alert('Please wait a moment and try again.');
+      return;
+    }
 
+    // For now, only support Fleet Management
+    if (accountType !== ACCOUNT_TYPES.FLEET) {
+      alert('Personal account coming soon! Please select Fleet Management for now.');
+      return;
+    }
+
+    setLoading(true);
+    
+    try {
+      console.log('📝 Updating user metadata...', { accountType });
+      
       // Save account type to Clerk metadata
       await user.update({
         publicMetadata: {
@@ -27,11 +38,26 @@ export default function AccountTypeSelector() {
         }
       });
 
+      console.log('✅ Metadata updated successfully');
+      
       // Route to fleet onboarding
       navigate('/onboarding/fleet');
     } catch (error) {
-      console.error('Error selecting account type:', error);
-      alert('Something went wrong. Please try again.');
+      console.error('❌ Error selecting account type:', error);
+      console.error('Error details:', {
+        message: error.message,
+        name: error.name,
+        stack: error.stack
+      });
+      
+      // More specific error message
+      if (error.message?.includes('publicMetadata')) {
+        alert('Unable to save account type. Please ensure you are signed in and try again.');
+      } else {
+        alert('Something went wrong: ' + (error.message || 'Please try again'));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -55,8 +81,10 @@ export default function AccountTypeSelector() {
         <div className="grid md:grid-cols-2 gap-6">
           {/* Fleet Option */}
           <div
-            onClick={() => handleSelect(ACCOUNT_TYPES.FLEET)}
-            className="group border-2 border-emerald-200 hover:border-emerald-500 rounded-2xl p-8 cursor-pointer transition-all duration-300 bg-gradient-to-br from-white to-emerald-50/50 hover:shadow-xl hover:-translate-y-1"
+            onClick={() => !loading && handleSelect(ACCOUNT_TYPES.FLEET)}
+            className={`group border-2 border-emerald-200 hover:border-emerald-500 rounded-2xl p-8 transition-all duration-300 bg-gradient-to-br from-white to-emerald-50/50 hover:shadow-xl hover:-translate-y-1 ${
+              loading ? 'opacity-50 cursor-wait' : 'cursor-pointer'
+            }`}
           >
             <div className="text-5xl mb-4 text-center">
               🚛
@@ -90,7 +118,7 @@ export default function AccountTypeSelector() {
               </li>
             </ul>
             <div className="bg-emerald-100 text-emerald-700 px-4 py-2 rounded-lg text-xs font-semibold text-center">
-              Perfect for: Logistics, Delivery, Trucking
+              {loading ? 'Setting up...' : 'Perfect for: Logistics, Delivery, Trucking'}
             </div>
           </div>
 
