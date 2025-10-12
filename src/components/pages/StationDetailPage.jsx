@@ -28,7 +28,7 @@ const StationDetailPage = ({ stationId, onBack }) => {
       if (!station || mapRef.current || !mapEl.current) return;
       const mapboxgl = await getMapbox();
       if (cancelled) return;
-      mapboxgl.accessToken = 'pk.eyJ1IjoieWF6enlqZW5rcyIsImEiOiJjbWU2b2o0eXkxNDFmMm1vbGY3dWt5aXViIn0.8hEu3t-bv3R3kGsBb_PIcw';
+      mapboxgl.accessToken = import.meta.env.VITE_MAPBOX_TOKEN;
       const [lng, lat] = station.coordinates || [36.8219, -1.2921];
       const map = new mapboxgl.Map({
         container: mapEl.current,
