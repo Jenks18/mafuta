@@ -1,213 +1,597 @@
-import { create } from 'zustand'
-import { supabase } from '../lib/supabaseClient'
-import { transformShellStation, sortStationsByDistance } from '../utils/locationUtils'
+import { create } from 'zustand';
+import { supabase } from '../lib/supabaseClient';
+import { transformShellStation, sortStationsByDistance } from '../utils/locationUtils';
 
-// Mock data for demonstration
-const mockCards = [
-  { id: '****1234', status: 'ACTIVE', assignedTo: 'John Smith', avatar: 'user' },
-  { id: '****5678', status: 'ACTIVE', assignedTo: 'Sarah Johnson', avatar: 'user' },
-  { id: '****9012', status: 'INACTIVE', assignedTo: 'Mike Davis', avatar: 'loading' },
-]
-
-const mockTransactions = [
-  { id: 1, date: '2024-01-15', desc: 'Shell Station Downtown', amount: 65.43 },
-  { id: 2, date: '2024-01-14', desc: 'BP Highway 95', amount: 42.18 },
-  { id: 3, date: '2024-01-13', desc: 'Chevron Main St', amount: 78.92 },
-]
-
-const mockContacts = [
-  { name: 'Alice Cooper', phone: '+1 234-567-8901' },
-  { name: 'Bob Wilson', phone: '+1 234-567-8902' },
-  { name: 'Carol Davis', phone: '+1 234-567-8903' },
-]
-
-const mockFuelStations = [
-  { 
-    id: 1, 
-    name: 'XTRA Fuels', 
-    brand: 'XTRA',
-    address: '8721 Baltimore Ave, College Park',
-    distance: '0.9 mi',
-    price: 2.60,
-    originalPrice: 2.76,
-    cashback: 16,
-    isOpen: true,
-    mapX: '35%', 
-    mapY: '40%',
-    coordinates: [36.8219, -1.2921],
-    offers: [
-      { type: 'Regular', price: 2.60, originalPrice: 2.76, cashback: 16 },
-      { type: 'Midgrade', price: 3.62, originalPrice: 3.90, cashback: 28 },
-      { type: 'Premium', price: 3.74, originalPrice: 4.00, cashback: 26 }
-    ]
-  },
-  { 
-    id: 2, 
-    name: 'Exxon', 
-    brand: 'Exxon',
-    address: '8401 Baltimore Ave',
-    distance: '0.9 mi',
-    price: 3.24,
-    originalPrice: 3.50,
-    cashback: 26,
-    isOpen: true,
-    mapX: '55%', 
-    mapY: '30%',
-    coordinates: [36.8172, -1.2864],
-    offers: [
-      { type: 'Regular', price: 3.24, originalPrice: 3.50, cashback: 26 }
-    ]
-  },
-  { 
-    id: 3, 
-    name: 'Shell', 
-    brand: 'Shell',
-    address: '6001 Greenbelt Rd',
-    distance: '1.9 mi',
-    price: 2.83,
-    originalPrice: 3.10,
-    cashback: 27,
-    isOpen: true,
-    mapX: '70%', 
-    mapY: '60%',
-    coordinates: [36.8833, -1.3167],
-    offers: [
-      { type: 'Regular', price: 2.83, originalPrice: 3.10, cashback: 27 }
-    ],
-    extraOffer: '9% cash back inside the store'
-  },
-  { 
-    id: 4, 
-    name: 'Total Energies', 
-    brand: 'Total',
-    address: 'Westlands, Nairobi',
-    distance: '2.3 mi',
-    price: 2.95,
-    originalPrice: 3.20,
-    cashback: 25,
-    isOpen: true,
-    mapX: '25%', 
-    mapY: '55%',
-    coordinates: [36.8108, -1.2676],
-    offers: [
-      { type: 'Regular', price: 2.95, originalPrice: 3.20, cashback: 25 }
-    ]
-  },
-  { 
-    id: 5, 
-    name: 'KenolKobil', 
-    brand: 'Kenol',
-    address: 'CBD, Nairobi',
-    distance: '1.2 mi',
-    price: 2.75,
-    originalPrice: 3.05,
-    cashback: 30,
-    isOpen: true,
-    mapX: '45%', 
-    mapY: '45%',
-    coordinates: [36.8172, -1.2864],
-    offers: [
-      { type: 'Regular', price: 2.75, originalPrice: 3.05, cashback: 30 }
-    ]
-  }
-]
-
-// Defer loading of large local stations JSON to reduce initial bundle size
+// Get organization ID from environment or use default for demo
+const getOrganizationId = () => {
+  return import.meta.env.VITE_ORGANIZATION_ID || '00000000-0000-0000-0000-000000000000';
+};
 
 export const useStore = create((set, get) => ({
   // Auth
   user: null,
   authInitialized: false,
+  organizationId: getOrganizationId(),
+  
   // Data
   referralCode: 'FUEL2024',
   earnings: 125.50,
   referrals: 3,
   pending: 2,
   joined: 8,
-  cards: mockCards,
-  transactions: mockTransactions,
-  contacts: mockContacts,
+  
+  // Real data from Supabase (will be empty initially for new orgs)
+  drivers: [],
+  vehicles: [],
+  cards: [],
+  transactions: [],
+  payrollPayouts: [],
+  walletTransactions: [],
+  
+  contacts: [],
   fuelStations: [],
   userLocation: { lat: -1.2921, lon: 36.8219 }, // Default Nairobi location
   profiles: [],
+  
+  // Loading states
+  isLoadingDrivers: false,
+  isLoadingVehicles: false,
+  isLoadingCards: false,
+  isLoadingTransactions: false,
   
   // UI State
   contactQuery: '',
   qrUrl: '',
   shareMessage: '',
   
-  // Actions
+  // ========== DRIVERS CRUD ==========
+  loadDrivers: async () => {
+    set({ isLoadingDrivers: true });
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('drivers')
+          .select('*')
+          .eq('organization_id', get().organizationId)
+          .order('created_at', { ascending: false });
+        
+        if (!error && data) {
+          set({ drivers: data });
+          return;
+        }
+        console.error('Error loading drivers:', error);
+      }
+    } catch (error) {
+      console.error('Failed to load drivers:', error);
+    } finally {
+      set({ isLoadingDrivers: false });
+    }
+    // Keep empty array for new organizations
+    set({ drivers: [] });
+  },
+  
+  addDriver: async (driverData) => {
+    try {
+      const newDriver = {
+        ...driverData,
+        organization_id: get().organizationId
+      };
+      
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('drivers')
+          .insert([newDriver])
+          .select()
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({ drivers: [data, ...state.drivers] }));
+          return data;
+        }
+        throw error || new Error('Failed to add driver');
+      }
+    } catch (error) {
+      console.error('Failed to add driver:', error);
+      throw error;
+    }
+  },
+  
+  updateDriver: async (id, updates) => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('drivers')
+          .update(updates)
+          .eq('id', id)
+          .eq('organization_id', get().organizationId)
+          .select()
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({
+            drivers: state.drivers.map(d => d.id === id ? data : d)
+          }));
+          return data;
+        }
+        throw error || new Error('Failed to update driver');
+      }
+    } catch (error) {
+      console.error('Failed to update driver:', error);
+      throw error;
+    }
+  },
+  
+  deleteDriver: async (id) => {
+    try {
+      if (supabase) {
+        const { error } = await supabase
+          .from('drivers')
+          .delete()
+          .eq('id', id)
+          .eq('organization_id', get().organizationId);
+        
+        if (!error) {
+          set((state) => ({
+            drivers: state.drivers.filter(d => d.id !== id)
+          }));
+          return;
+        }
+        throw error || new Error('Failed to delete driver');
+      }
+    } catch (error) {
+      console.error('Failed to delete driver:', error);
+      throw error;
+    }
+  },
+  
+  // ========== VEHICLES CRUD ==========
+  loadVehicles: async () => {
+    set({ isLoadingVehicles: true });
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('vehicles')
+          .select(`
+            *,
+            driver:drivers(id, name)
+          `)
+          .eq('organization_id', get().organizationId)
+          .order('created_at', { ascending: false });
+        
+        if (!error && data) {
+          set({ vehicles: data });
+          return;
+        }
+        console.error('Error loading vehicles:', error);
+      }
+    } catch (error) {
+      console.error('Failed to load vehicles:', error);
+    } finally {
+      set({ isLoadingVehicles: false });
+    }
+    set({ vehicles: [] });
+  },
+  
+  addVehicle: async (vehicleData) => {
+    try {
+      const newVehicle = {
+        ...vehicleData,
+        organization_id: get().organizationId
+      };
+      
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('vehicles')
+          .insert([newVehicle])
+          .select(`
+            *,
+            driver:drivers(id, name)
+          `)
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({ vehicles: [data, ...state.vehicles] }));
+          return data;
+        }
+        throw error || new Error('Failed to add vehicle');
+      }
+    } catch (error) {
+      console.error('Failed to add vehicle:', error);
+      throw error;
+    }
+  },
+  
+  updateVehicle: async (id, updates) => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('vehicles')
+          .update(updates)
+          .eq('id', id)
+          .eq('organization_id', get().organizationId)
+          .select(`
+            *,
+            driver:drivers(id, name)
+          `)
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({
+            vehicles: state.vehicles.map(v => v.id === id ? data : v)
+          }));
+          return data;
+        }
+        throw error || new Error('Failed to update vehicle');
+      }
+    } catch (error) {
+      console.error('Failed to update vehicle:', error);
+      throw error;
+    }
+  },
+  
+  deleteVehicle: async (id) => {
+    try {
+      if (supabase) {
+        const { error } = await supabase
+          .from('vehicles')
+          .delete()
+          .eq('id', id)
+          .eq('organization_id', get().organizationId);
+        
+        if (!error) {
+          set((state) => ({
+            vehicles: state.vehicles.filter(v => v.id !== id)
+          }));
+          return;
+        }
+        throw error || new Error('Failed to delete vehicle');
+      }
+    } catch (error) {
+      console.error('Failed to delete vehicle:', error);
+      throw error;
+    }
+  },
+  
+  // ========== CARDS CRUD ==========
+  loadCards: async () => {
+    set({ isLoadingCards: true });
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('fuel_cards')
+          .select(`
+            *,
+            driver:assigned_driver_id(id, name),
+            vehicle:assigned_vehicle_id(id, make, model, color, license_plate)
+          `)
+          .order('created_at', { ascending: false });
+        
+        if (!error && data) {
+          set({ cards: data });
+          return;
+        }
+        console.error('Error loading cards:', error);
+      }
+    } catch (error) {
+      console.error('Failed to load cards:', error);
+    } finally {
+      set({ isLoadingCards: false });
+    }
+    set({ cards: [] });
+  },
+  
+  addCard: async (cardData) => {
+    try {
+      const newCard = {
+        ...cardData,
+        // Generate last 4 digits for card number display
+        last_four: Math.floor(1000 + Math.random() * 9000).toString()
+      };
+      
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('fuel_cards')
+          .insert([newCard])
+          .select(`
+            *,
+            driver:assigned_driver_id(id, name),
+            vehicle:assigned_vehicle_id(id, make, model, color, license_plate)
+          `)
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({ cards: [data, ...state.cards] }));
+          return data;
+        }
+        throw error || new Error('Failed to add card');
+      }
+    } catch (error) {
+      console.error('Failed to add card:', error);
+      throw error;
+    }
+  },
+  
+  updateCard: async (id, updates) => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('cards')
+          .update(updates)
+          .eq('id', id)
+          .eq('organization_id', get().organizationId)
+          .select(`
+            *,
+            driver:drivers(id, name),
+            vehicle:vehicles(id, make, model, color, license_plate)
+          `)
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({
+            cards: state.cards.map(c => c.id === id ? data : c)
+          }));
+          return data;
+        }
+        throw error || new Error('Failed to update card');
+      }
+    } catch (error) {
+      console.error('Failed to update card:', error);
+      throw error;
+    }
+  },
+  
+  deleteCard: async (id) => {
+    try {
+      if (supabase) {
+        const { error } = await supabase
+          .from('cards')
+          .delete()
+          .eq('id', id)
+          .eq('organization_id', get().organizationId);
+        
+        if (!error) {
+          set((state) => ({
+            cards: state.cards.filter(c => c.id !== id)
+          }));
+          return;
+        }
+        throw error || new Error('Failed to delete card');
+      }
+    } catch (error) {
+      console.error('Failed to delete card:', error);
+      throw error;
+    }
+  },
+  
+  toggleCardStatus: async (cardId) => {
+    const card = get().cards.find(c => c.id === cardId);
+    if (!card) return;
+    
+    const newStatus = card.status === 'active' ? 'inactive' : 'active';
+    await get().updateCard(cardId, { status: newStatus });
+  },
+  
+  // ========== TRANSACTIONS CRUD ==========
+  loadTransactions: async () => {
+    set({ isLoadingTransactions: true });
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('transactions')
+          .select(`
+            *,
+            card:fuel_cards(id, card_number, last_four),
+            driver:drivers(id, name),
+            vehicle:vehicles(id, make, model, license_plate)
+          `)
+          .eq('organization_id', get().organizationId)
+          .order('transaction_date', { ascending: false })
+          .limit(100);
+        
+        if (!error && data) {
+          set({ transactions: data });
+          return;
+        }
+        console.error('Error loading transactions:', error);
+      }
+    } catch (error) {
+      console.error('Failed to load transactions:', error);
+    } finally {
+      set({ isLoadingTransactions: false });
+    }
+    set({ transactions: [] });
+  },
+  
+  addTransaction: async (transactionData) => {
+    try {
+      const newTransaction = {
+        ...transactionData,
+        organization_id: get().organizationId
+      };
+      
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('transactions')
+          .insert([newTransaction])
+          .select(`
+            *,
+            card:fuel_cards(id, card_number, last_four),
+            driver:drivers(id, name),
+            vehicle:vehicles(id, make, model, license_plate)
+          `)
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({ transactions: [data, ...state.transactions] }));
+          return data;
+        }
+        throw error || new Error('Failed to add transaction');
+      }
+    } catch (error) {
+      console.error('Failed to add transaction:', error);
+      throw error;
+    }
+  },
+  
+  // ========== PAYROLL CRUD ==========
+  loadPayrollPayouts: async () => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('payroll_payouts')
+          .select(`
+            *,
+            driver:drivers(id, name)
+          `)
+          .eq('organization_id', get().organizationId)
+          .order('payout_date', { ascending: false })
+          .limit(50);
+        
+        if (!error && data) {
+          set({ payrollPayouts: data });
+          return;
+        }
+        console.error('Error loading payroll payouts:', error);
+      }
+    } catch (error) {
+      console.error('Failed to load payroll payouts:', error);
+    }
+    set({ payrollPayouts: [] });
+  },
+  
+  addPayrollPayout: async (payoutData) => {
+    try {
+      const newPayout = {
+        ...payoutData,
+        organization_id: get().organizationId
+      };
+      
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('payroll_payouts')
+          .insert([newPayout])
+          .select(`
+            *,
+            driver:drivers(id, name)
+          `)
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({ payrollPayouts: [data, ...state.payrollPayouts] }));
+          return data;
+        }
+        throw error || new Error('Failed to add payout');
+      }
+    } catch (error) {
+      console.error('Failed to add payout:', error);
+      throw error;
+    }
+  },
+  
+  // ========== WALLET TRANSACTIONS CRUD ==========
+  loadWalletTransactions: async () => {
+    try {
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('wallet_transactions')
+          .select('*')
+          .eq('organization_id', get().organizationId)
+          .order('transaction_date', { ascending: false })
+          .limit(50);
+        
+        if (!error && data) {
+          set({ walletTransactions: data });
+          return;
+        }
+        console.error('Error loading wallet transactions:', error);
+      }
+    } catch (error) {
+      console.error('Failed to load wallet transactions:', error);
+    }
+    set({ walletTransactions: [] });
+  },
+  
+  addWalletTransaction: async (transactionData) => {
+    try {
+      const newTransaction = {
+        ...transactionData,
+        organization_id: get().organizationId
+      };
+      
+      if (supabase) {
+        const { data, error } = await supabase
+          .from('wallet_transactions')
+          .insert([newTransaction])
+          .select()
+          .single();
+        
+        if (!error && data) {
+          set((state) => ({ walletTransactions: [data, ...state.walletTransactions] }));
+          return data;
+        }
+        throw error || new Error('Failed to add wallet transaction');
+      }
+    } catch (error) {
+      console.error('Failed to add wallet transaction:', error);
+      throw error;
+    }
+  },
+  
+  // ========== INITIALIZATION ==========
+  initializeData: async () => {
+    // Load all data in parallel
+    await Promise.all([
+      get().loadDrivers(),
+      get().loadVehicles(),
+      get().loadCards(),
+      get().loadTransactions(),
+      get().loadPayrollPayouts(),
+      get().loadWalletTransactions(),
+      get().loadProfiles()
+    ]);
+  },
+  
+  // ========== LEGACY ACTIONS (for backwards compatibility) ==========
   setContactQuery: (query) => set({ contactQuery: query }),
   
   referUser: () => {
-    console.log('Referring user...')
+    console.log('Referring user...');
     set((state) => ({ 
       referrals: state.referrals + 1,
       earnings: state.earnings + 25.00 
-    }))
+    }));
   },
   
   generateQr: () => {
-    const qrUrl = `https://mafuta.app/refer/${get().referralCode}`
-    set({ qrUrl })
-    console.log('Generated QR URL:', qrUrl)
+    const qrUrl = `https://mafuta.app/refer/${get().referralCode}`;
+    set({ qrUrl });
+    console.log('Generated QR URL:', qrUrl);
   },
   
   shareReferral: () => {
-    set({ shareMessage: 'Referral link shared successfully!' })
-    setTimeout(() => set({ shareMessage: '' }), 3000)
+    set({ shareMessage: 'Referral link shared successfully!' });
+    setTimeout(() => set({ shareMessage: '' }), 3000);
   },
   
   inviteContact: (contact) => {
-    console.log('Inviting contact:', contact)
-    set({ shareMessage: `Invitation sent to ${contact.name}` })
-    setTimeout(() => set({ shareMessage: '' }), 3000)
-  },
-  
-  toggleCardActive: (cardId) => {
-    set((state) => ({
-      cards: state.cards.map(card => 
-        card.id === cardId 
-          ? { ...card, status: card.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' }
-          : card
-      )
-    }))
-  },
-  
-  addTransaction: (transaction) => {
-    set((state) => ({
-      transactions: [
-        { ...transaction, id: Date.now() },
-        ...state.transactions
-      ]
-    }))
+    console.log('Inviting contact:', contact);
+    set({ shareMessage: `Invitation sent to ${contact.name}` });
+    setTimeout(() => set({ shareMessage: '' }), 3000);
   },
   
   removeTransaction: (transactionId) => {
     set((state) => ({
       transactions: state.transactions.filter(t => t.id !== transactionId)
-    }))
-  },
-  
-  addCard: (card) => {
-    set((state) => ({
-      cards: [
-        { ...card, id: Date.now() },
-        ...state.cards
-      ]
-    }))
+    }));
   },
   
   removeCard: (cardId) => {
-    set((state) => ({
-      cards: state.cards.filter(c => c.id !== cardId)
-    }))
+    get().deleteCard(cardId);
   },
 
   // Location and Station Actions
   setUserLocation: (lat, lon) => {
     set({ userLocation: { lat, lon } });
-    // Re-sort stations by distance when location changes
     get().sortStationsByProximity();
   },
 
@@ -224,46 +608,54 @@ export const useStore = create((set, get) => ({
   addShellStations: (shellStations) => {
     const currentStations = get().fuelStations;
     const transformedStations = shellStations.map((station, index) => {
-      // If station already in app shape (has coordinates array and brand), keep as-is
       if (station && Array.isArray(station.coordinates) && station.brand) {
-  const brand = station.brand;
-  const base = (import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
-  const localDefault = brand && brand.toLowerCase() === 'shell' ? `${base}logos/shell.svg` : (brand ? `${base}logos/${brand.toLowerCase()}.png` : undefined);
-  const logoUrl = station.logoUrl || localDefault;
+        const brand = station.brand;
+        const base = (import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
+        const localDefault = brand && brand.toLowerCase() === 'shell' ? `${base}logos/shell.svg` : (brand ? `${base}logos/${brand.toLowerCase()}.png` : undefined);
+        const logoUrl = station.logoUrl || localDefault;
         return { id: station.id ?? `station-${currentStations.length + index + 1}`, ...station, logoUrl };
       }
-      // Otherwise transform from raw shell format
       const t = transformShellStation(station, currentStations.length + index);
-  const brand = t.brand;
-  const base = (import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
-  const localDefault = brand && brand.toLowerCase() === 'shell' ? `${base}logos/shell.svg` : (brand ? `${base}logos/${brand.toLowerCase()}.png` : undefined);
-  return { ...t, logoUrl: t.logoUrl || localDefault };
+      const brand = t.brand;
+      const base = (import.meta && import.meta.env && import.meta.env.BASE_URL) ? import.meta.env.BASE_URL : '/';
+      const localDefault = brand && brand.toLowerCase() === 'shell' ? `${base}logos/shell.svg` : (brand ? `${base}logos/${brand.toLowerCase()}.png` : undefined);
+      return { ...t, logoUrl: t.logoUrl || localDefault };
     });
     
     set({
       fuelStations: [...currentStations, ...transformedStations]
     });
     
-    // Sort by proximity after adding
     get().sortStationsByProximity();
   },
 
-  // Load built-in Shell data lazily (dynamic import) as a local fallback
   loadLocalShellStations: async () => {
     try {
-      if (get().fuelStations.length > 0) return; // already loaded
+      if (get().fuelStations.length > 0) {
+        console.log('[Store] Stations already loaded:', get().fuelStations.length);
+        return;
+      }
+      console.log('[Store] Loading Shell stations from JSON...');
       const mod = await import('../data/shellStations.json');
       const data = (mod?.default || mod) ?? [];
+      console.log('[Store] Raw data loaded:', data.length, 'stations');
       const transformed = data.map((station, index) => transformShellStation(station, index));
+      console.log('[Store] Transformed:', transformed.length, 'stations');
       set({ fuelStations: transformed });
       get().sortStationsByProximity();
+      console.log('[Store] Final fuelStations count:', get().fuelStations.length);
     } catch (e) {
-      // ignore
+      console.error('[Store] Error loading shell stations:', e);
     }
   },
 
+  setFuelStations: (stations) => {
+    console.log('[Store] setFuelStations called with', stations?.length || 0, 'stations');
+    set({ fuelStations: stations || [] });
+    get().sortStationsByProximity();
+  },
+
   refreshStations: () => {
-    // Re-sort existing stations based on current location
     get().sortStationsByProximity();
   },
   
@@ -271,10 +663,10 @@ export const useStore = create((set, get) => ({
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD'
-    }).format(amount)
+    }).format(amount);
   },
 
-  // Auth actions (Supabase-aware with mock fallback)
+  // Auth actions
   initAuth: async () => {
     try {
       if (supabase) {
@@ -292,32 +684,38 @@ export const useStore = create((set, get) => ({
   loginMock: (user) => set({ user }),
   logoutMock: () => set({ user: null }),
 
-  // Profiles CRUD (Supabase `profiles` table suggested: id uuid PK, email text, full_name text, role text, org_id uuid)
+  // Profiles CRUD
   loadProfiles: async () => {
     try {
       if (supabase) {
-        const { data, error } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
-        if (!error) { set({ profiles: data || [] }); return; }
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (!error) {
+          set({ profiles: data || [] });
+          return;
+        }
       }
     } catch {}
-    // Mock fallback
-    set({ profiles: [
-      { id: '1', email: 'owner@demo.app', full_name: 'Owner User', role: 'owner' },
-      { id: '2', email: 'admin@demo.app', full_name: 'Admin User', role: 'admin' },
-    ]});
+    set({ profiles: [] });
   },
 
   upsertProfile: async (p) => {
     try {
       if (supabase) {
-        const { data, error } = await supabase.from('profiles').upsert(p).select('*');
+        const { data, error } = await supabase
+          .from('profiles')
+          .upsert(p)
+          .select('*');
+        
         if (!error) {
           await get().loadProfiles();
           return data?.[0];
         }
       }
     } catch {}
-    // Mock add/update
     set((state) => {
       const exists = state.profiles.find((x) => x.id === p.id);
       if (exists) {
@@ -330,7 +728,11 @@ export const useStore = create((set, get) => ({
   deleteProfile: async (id) => {
     try {
       if (supabase) {
-        const { error } = await supabase.from('profiles').delete().eq('id', id);
+        const { error } = await supabase
+          .from('profiles')
+          .delete()
+          .eq('id', id);
+        
         if (!error) {
           set((state) => ({ profiles: state.profiles.filter((x) => x.id !== id) }));
           return;
@@ -339,4 +741,4 @@ export const useStore = create((set, get) => ({
     } catch {}
     set((state) => ({ profiles: state.profiles.filter((x) => x.id !== id) }));
   }
-}))
+}));

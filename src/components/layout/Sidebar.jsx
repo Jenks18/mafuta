@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, startTransition } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { sidebarNavigation } from '../../config/navigation.jsx';
 import Logo, { LogoMark, LogoWordmark } from '../common/Logo';
 import { prefetchByKey, prefetchCommonPagesIdle } from '../../utils/pagePrefetch';
@@ -79,7 +79,7 @@ const Sidebar = ({ activeTab, setActiveTab }) => {
                     onMouseEnter={() => prefetchByKey(item.key)}
                     onTouchStart={() => prefetchByKey(item.key)}
                     onFocus={() => prefetchByKey(item.key)}
-                    onClick={() => startTransition(() => setActiveTab(item.key))}
+                    onClick={() => setActiveTab(item.key)}
                     className={`w-full flex items-center ${isCollapsed ? 'justify-center px-2 py-3' : 'gap-3 px-3 py-2'} text-sm font-medium rounded-lg transition-all duration-200 group relative ${
                       activeTab === item.key
                         ? 'bg-white/60 text-emerald-800 shadow-sm border border-emerald-300/50 backdrop-blur-sm'

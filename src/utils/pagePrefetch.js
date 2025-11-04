@@ -7,11 +7,12 @@ const importMap = {
   more: () => import('../components/pages/MorePage.jsx'),
   refer: () => import('../components/pages/RewardsPage.jsx'),
   rewards: () => import('../components/pages/RewardsPage.jsx'),
-  drivers: () => import('../components/pages/DriversPage.jsx'),
-  vehicles: () => import('../components/pages/VehiclesPage.jsx'),
+  drivers: () => import('../components/DriversPage.jsx'),
+  vehicles: () => import('../components/VehiclesPage.jsx'),
   'trucks-map': () => import('../components/pages/MapPage.jsx'),
-  'payroll-overview': () => import('../components/pages/PayrollPage.jsx'),
-  'payroll-history': () => import('../components/pages/PayrollPage.jsx'),
+  wallet: () => import('../components/pages/WalletPage.jsx'),
+  'payroll-overview': () => import('../components/PayrollPage.jsx'),
+  'payroll-history': () => import('../components/pages/PayrollHistoryPage.jsx'),
 };
 
 export function prefetchByKey(key) {

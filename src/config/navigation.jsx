@@ -32,6 +32,15 @@ export const sidebarNavigation = [
         ) 
       },
       { 
+        key: 'wallet', 
+        label: 'Wallet', 
+        icon: (
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        ) 
+      },
+      { 
         key: 'transactions', 
         label: 'Transactions', 
         icon: (
@@ -219,13 +228,13 @@ export const mobileNavigation = [
     label: 'Transactions' 
   },
   { 
-    key: 'cards', 
+    key: 'rewards', 
     icon: (
       <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H3m18 0a2 2 0 012 2v6a2 2 0 01-2 2H3a2 2 0 01-2-2v-6a2 2 0 012-2m18 0V7a2 2 0 00-2-2H5a2 2 0 00-2 2v3" />
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
       </svg>
     ), 
-    label: 'Cards' 
+    label: 'Rewards' 
   },
   { 
     key: 'more', 
@@ -237,5 +246,140 @@ export const mobileNavigation = [
       </svg>
     ), 
     label: 'More' 
+  },
+];
+
+// Menu items for the More page (mobile)
+export const morePageMenuItems = [
+  {
+    section: 'Financial',
+    items: [
+      { 
+        key: 'wallet', 
+        label: 'Wallet', 
+        description: 'Manage your wallet balance',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+          </svg>
+        ),
+        color: 'emerald'
+      },
+      { 
+        key: 'cards', 
+        label: 'Cards', 
+        description: 'Manage fuel cards',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 10H3m18 0a2 2 0 012 2v6a2 2 0 01-2 2H3a2 2 0 01-2-2v-6a2 2 0 012-2m18 0V7a2 2 0 00-2-2H5a2 2 0 00-2 2v3" />
+          </svg>
+        ),
+        color: 'blue'
+      },
+      { 
+        key: 'statements', 
+        label: 'Statements', 
+        description: 'View billing statements',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        ),
+        color: 'purple'
+      },
+    ]
+  },
+  {
+    section: 'Fleet Management',
+    items: [
+      { 
+        key: 'drivers', 
+        label: 'Drivers', 
+        description: 'Manage your drivers',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m9-4a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        ),
+        color: 'indigo'
+      },
+      { 
+        key: 'vehicles', 
+        label: 'Vehicles', 
+        description: 'Manage your vehicles',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1m8-1a1 1 0 01-1-1V8a1 1 0 011-1h2.586a1 1 0 01.707.293l3.414 3.414a1 1 0 01.293.707V16a1 1 0 01-1 1h-1m-6 0a1 1 0 001 1h4a1 1 0 001-1m-6 0h6" />
+          </svg>
+        ),
+        color: 'orange'
+      },
+      { 
+        key: 'trucks-map', 
+        label: 'Fleet Map', 
+        description: 'Track vehicles on map',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
+          </svg>
+        ),
+        color: 'teal'
+      },
+    ]
+  },
+  {
+    section: 'Payroll',
+    items: [
+      { 
+        key: 'payroll-overview', 
+        label: 'Payroll Overview', 
+        description: 'Quick pay and overview',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        ),
+        color: 'green'
+      },
+      { 
+        key: 'payroll-history', 
+        label: 'Payroll History', 
+        description: 'View payment history',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+          </svg>
+        ),
+        color: 'lime'
+      },
+    ]
+  },
+  {
+    section: 'Settings & Support',
+    items: [
+      { 
+        key: 'profile', 
+        label: 'Profile', 
+        description: 'Your account settings',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+        ),
+        color: 'gray'
+      },
+      { 
+        key: 'support', 
+        label: 'Support', 
+        description: 'Get help and support',
+        icon: (
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192l-3.536 3.536M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
+        ),
+        color: 'red'
+      },
+    ]
   },
 ];

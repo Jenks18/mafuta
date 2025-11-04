@@ -44,29 +44,46 @@ export const useMapbox = (fuelStations, onStationClick) => {
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
 
-  map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [36.8219, -1.2921], // Nairobi coordinates
-      zoom: 12,
-      interactive: true,
-      dragRotate: false,
-      pitchWithRotate: false,
-      touchPitch: false,
-    });
+    // Defer heavy map initialization to idle time so UI updates (like navigation) are immediate
+    const init = () => {
+      try {
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [36.8219, -1.2921], // Nairobi coordinates
+          zoom: 12,
+          interactive: true,
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
+        });
+        
+        // Add load handler here
+        map.current.on('load', () => {
+          // Explicitly enable common interactions
+          try { map.current.keyboard.enable(); } catch {}
+          try { map.current.doubleClickZoom.enable(); } catch {}
+          try { map.current.scrollZoom.enable(); } catch {}
+          try { map.current.boxZoom.enable(); } catch {}
+          try { map.current.dragRotate.disable(); } catch {}
+          try { map.current.touchZoomRotate.disableRotation(); } catch {}
+          try { map.current.resize(); } catch { /* noop */ }
+          setMapLoaded(true);
+        });
+      } catch (err) {
+        // swallow init errors; map will remain uninitialized
+        console.debug('[Map] init failed', err);
+      }
+    };
 
-  // Ensure the map resizes to fill its container after load
-  map.current.on('load', () => {
-    // Explicitly enable common interactions
-    try { map.current.keyboard.enable(); } catch {}
-    try { map.current.doubleClickZoom.enable(); } catch {}
-    try { map.current.scrollZoom.enable(); } catch {}
-    try { map.current.boxZoom.enable(); } catch {}
-    try { map.current.dragRotate.disable(); } catch {}
-    try { map.current.touchZoomRotate.disableRotation(); } catch {}
-      try { map.current.resize(); } catch { /* noop */ }
-      setMapLoaded(true);
-    });
+    // Use longer delay to ensure navigation completes first
+    if ('requestIdleCallback' in window) {
+      // @ts-ignore
+      window.requestIdleCallback(init, { timeout: 2000 });
+    } else {
+      // Longer delay for smoother navigation
+      setTimeout(init, 500);
+    }
 
     const handleResize = () => {
       if (map.current) map.current.resize();
@@ -84,7 +101,7 @@ export const useMapbox = (fuelStations, onStationClick) => {
         try { resizeObserverRef.current.disconnect(); } catch { /* noop */ }
       }
       if (map.current) {
-        map.current.remove();
+        try { map.current.remove(); } catch {}
         map.current = null;
       }
     };
@@ -131,6 +148,7 @@ export const useMapbox = (fuelStations, onStationClick) => {
   // 2) Update markers whenever stations or visibility change
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
+    if (!fuelStations || fuelStations.length === 0) return; // Wait for stations to load
 
     // If none selected yet, show the 10 closest to current center initially
     if (visibleIndices.length === 0) {
@@ -139,10 +157,12 @@ export const useMapbox = (fuelStations, onStationClick) => {
       const top10 = withDist.sort((a,b)=>a.d-b.d).slice(0, 10).map(x=>x.idx);
       setVisibleIndices(top10);
       renderMarkers(top10);
+      console.log('[Map] Initial 10 closest stations loaded:', top10.length);
       return;
     }
 
     renderMarkers(visibleIndices);
+    console.log('[Map] Rendering', visibleIndices.length, 'markers');
 
     // Watch container size to keep map sized perfectly (handles sidebar collapse)
     if (mapContainer.current && !resizeObserverRef.current) {
@@ -158,14 +178,17 @@ export const useMapbox = (fuelStations, onStationClick) => {
   // Do not auto-recompute on map movement; only recompute when stations themselves change materially
   useEffect(() => {
     if (!map.current || !mapLoaded) return;
+    if (!fuelStations || fuelStations.length === 0) return; // Wait for stations
+    
     // Keep current selection; if empty, initialize closest 10
     if (visibleIndices.length === 0) {
       const center = map.current.getCenter();
       const withDist = fuelStations.map((s, idx) => ({ idx, d: haversineMeters([center.lng, center.lat], s.coordinates) }));
       const top10 = withDist.sort((a,b)=>a.d-b.d).slice(0, 10).map(x=>x.idx);
       setVisibleIndices(top10);
+      console.log('[Map] Initializing with', top10.length, 'closest stations');
     }
-  }, [fuelStations, mapLoaded]);
+  }, [fuelStations, mapLoaded, visibleIndices]);
 
   const flyToStation = (stationIndex) => {
     if (map.current && fuelStations[stationIndex]) {

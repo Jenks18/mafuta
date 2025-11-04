@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import MobileNav from './MobileNav';
 import FloatingBackground from '../common/FloatingBackground';
+import { NavigationProvider } from '../../contexts/NavigationContext';
 
 const Layout = ({ children, activeTab, setActiveTab }) => {
   const [isMobile, setIsMobile] = useState(false);
@@ -17,7 +18,8 @@ const Layout = ({ children, activeTab, setActiveTab }) => {
   }, []);
 
   return (
-    <>
+    <NavigationProvider value={{ setActiveTab }}>
+      <>
       {/* Floating Background - applies to entire app */}
       <FloatingBackground />
       
@@ -35,7 +37,8 @@ const Layout = ({ children, activeTab, setActiveTab }) => {
 
       {/* Mobile Navigation - fixed positioned */}
       <MobileNav activeTab={activeTab} setActiveTab={setActiveTab} />
-    </>
+      </>
+    </NavigationProvider>
   );
 };
 

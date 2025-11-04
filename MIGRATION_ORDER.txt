@@ -1,0 +1,52 @@
+-- =====================================================
+-- STEP 1: APPLY THIS FIRST - BASE SCHEMA
+-- =====================================================
+-- This creates all the base tables (users, companies, etc.)
+-- Copy from: supabase/migrations/001_multi_tenant_schema.sql
+-- URL: https://supabase.com/dashboard/project/mdezrwxafjgptjzxdmbc/sql/new
+
+⚠️  IMPORTANT: You need to apply TWO migrations in order:
+
+1. FIRST: Apply 001_multi_tenant_schema.sql (creates base tables)
+2. THEN: Apply 010_wallet_transactions.sql (creates wallet table)
+
+=====================================================
+STEP-BY-STEP INSTRUCTIONS:
+=====================================================
+
+STEP 1: Copy the contents of this file:
+📄 supabase/migrations/001_multi_tenant_schema.sql
+
+Go to Supabase SQL Editor and paste it:
+🔗 https://supabase.com/dashboard/project/mdezrwxafjgptjzxdmbc/sql/new
+
+Click RUN ✅
+
+STEP 2: Then copy the contents of this file:
+📄 APPLY_WALLET_MIGRATION.sql (or supabase/migrations/010_wallet_transactions.sql)
+
+Go to Supabase SQL Editor again and paste it:
+🔗 https://supabase.com/dashboard/project/mdezrwxafjgptjzxdmbc/sql/new
+
+Click RUN ✅
+
+=====================================================
+WHY THIS ORDER?
+=====================================================
+
+The wallet_transactions table references the users table, so users 
+must be created first. The 001_multi_tenant_schema.sql creates:
+
+- fleet_companies table
+- users table (this is what was missing!)
+- drivers table
+- vehicles table
+- fuel_cards table
+- transactions table
+- payroll_payouts table
+- And all their RLS policies
+
+Then 010_wallet_transactions.sql adds:
+- wallet_transactions table (references users)
+
+=====================================================

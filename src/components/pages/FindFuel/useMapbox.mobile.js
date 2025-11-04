@@ -32,19 +32,35 @@ export const useMapboxMobile = (stations, onMarkerTap) => {
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/streets-v12',
-      center: [36.8219, -1.2921],
-      zoom: 12,
-      dragRotate: false,
-      pitchWithRotate: false,
-      touchPitch: false,
-    });
-    map.current.on('load', () => {
-      try { map.current.resize(); } catch {}
-      setLoaded(true);
-    });
+    
+    // Defer map init for smoother navigation
+    const init = () => {
+      try {
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/streets-v12',
+          center: [36.8219, -1.2921],
+          zoom: 12,
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
+        });
+        map.current.on('load', () => {
+          try { map.current.resize(); } catch {}
+          setLoaded(true);
+        });
+      } catch (err) {
+        console.debug('[MobileMap] init failed', err);
+      }
+    };
+    
+    if ('requestIdleCallback' in window) {
+      // @ts-ignore
+      window.requestIdleCallback(init, { timeout: 2000 });
+    } else {
+      setTimeout(init, 500);
+    }
+    
     return () => { try { map.current?.remove(); } catch {}; map.current = null; };
   }, []);
 

@@ -1,7 +1,6 @@
-import React, { startTransition, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { mobileNavigation } from '../../config/navigation.jsx';
 import { prefetchByKey, prefetchCommonPagesIdle } from '../../utils/pagePrefetch';
-import LogoutButton from '../auth/LogoutButton';
 
 const MobileNav = ({ activeTab, setActiveTab }) => {
   useEffect(() => {
@@ -17,7 +16,7 @@ const MobileNav = ({ activeTab, setActiveTab }) => {
           onMouseEnter={() => prefetchByKey(item.key)}
           onTouchStart={() => prefetchByKey(item.key)}
           onFocus={() => prefetchByKey(item.key)}
-          onClick={() => startTransition(() => setActiveTab(item.key))}
+          onClick={() => setActiveTab(item.key)}
           className={`relative flex flex-col items-center px-2 py-1 rounded-lg transition-all duration-200 ${
             activeTab === item.key 
               ? 'text-emerald-700 bg-white/50 shadow-sm border border-emerald-200/30' 
@@ -28,9 +27,6 @@ const MobileNav = ({ activeTab, setActiveTab }) => {
           <span className="text-[11px] font-medium mt-0.5">{item.label}</span>
         </button>
       ))}
-      
-      {/* Logout Button */}
-      <LogoutButton variant="mobile" />
     </nav>
   );
 };

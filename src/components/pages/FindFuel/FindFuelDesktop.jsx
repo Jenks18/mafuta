@@ -11,6 +11,11 @@ const FindFuelDesktop = ({ onStationDetail, onClaim }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilter, setSelectedFilter] = useState('Gas');
   const [showSidebar, setShowSidebar] = useState(true);
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('[FindFuelDesktop] Fuel stations count:', fuelStations?.length || 0);
+  }, [fuelStations]);
 
   const filters = [
     { id: 'All', label: 'All', icon: '⚏', enabled: true },
@@ -82,17 +87,46 @@ const FindFuelDesktop = ({ onStationDetail, onClaim }) => {
           {/* Station List */}
           <div className="flex-1 overflow-y-auto overscroll-contain">
             <div className="p-4 space-y-3">
-              <StationList
-                stations={visibleStations.map(v => v.station)}
-                selectedIndex={visibleStations.findIndex(v => v.index === selectedStationIndex)}
-                onStationSelect={(idxInVisible) => {
-                  const globalIdx = visibleStations[idxInVisible]?.index ?? 0;
-                  handleStationSelect(globalIdx);
-                }}
-                onMoreInfo={onStationDetail}
-                onClaim={onClaim}
-                variant="sidebar"
-              />
+              {!fuelStations || fuelStations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-1">Loading stations...</h3>
+                  <p className="text-xs text-gray-500">Finding fuel stations near you</p>
+                </div>
+              ) : visibleStations.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-sm font-semibold text-gray-800 mb-1">No stations in view</h3>
+                  <p className="text-xs text-gray-500 mb-3">Try moving the map or zooming out</p>
+                  <button 
+                    onClick={searchArea}
+                    className="text-sm text-emerald-600 hover:text-emerald-700 font-medium"
+                  >
+                    Search this area
+                  </button>
+                </div>
+              ) : (
+                <StationList
+                  stations={visibleStations.map(v => v.station)}
+                  selectedIndex={visibleStations.findIndex(v => v.index === selectedStationIndex)}
+                  onStationSelect={(idxInVisible) => {
+                    const globalIdx = visibleStations[idxInVisible]?.index ?? 0;
+                    handleStationSelect(globalIdx);
+                  }}
+                  onMoreInfo={onStationDetail}
+                  onClaim={onClaim}
+                  variant="sidebar"
+                />
+              )}
             </div>
           </div>
         </div>

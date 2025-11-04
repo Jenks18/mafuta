@@ -17,6 +17,11 @@ const FindFuelMobile = ({ onStationDetail, onClaim }) => {
   
   const drawerRef = useRef(null);
   const stationScrollRef = useRef(null);
+  
+  // Debug logging
+  useEffect(() => {
+    console.log('[FindFuelMobile] Fuel stations count:', fuelStations?.length || 0);
+  }, [fuelStations]);
 
   const filters = [
     { id: 'All', label: 'All', icon: '⚏', enabled: true },

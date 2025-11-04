@@ -14,10 +14,12 @@ const TransactionsPage = lazy(() => import('./components/pages/TransactionsPage'
 const CardsPage = lazy(() => import('./components/pages/CardsPage'));
 const MorePage = lazy(() => import('./components/pages/MorePage'));
 const RewardsPage = lazy(() => import('./components/pages/RewardsPage'));
+const WalletPage = lazy(() => import('./components/pages/WalletPage'));
 const MapPage = lazy(() => import('./components/pages/MapPage'));
 const DriversPage = lazy(() => import('./components/DriversPage'));
 const VehiclesPage = lazy(() => import('./components/VehiclesPage'));
 const PayrollPage = lazy(() => import('./components/PayrollPage'));
+const PayrollHistoryPage = lazy(() => import('./components/pages/PayrollHistoryPage'));
 const DashboardPage = lazy(() => import('./components/pages/DashboardPage'));
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -25,12 +27,33 @@ const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 function AuthenticatedApp() {
   const { user, isLoaded } = useUser();
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   
   // Get shared state/actions from the store
-  const { removeTransaction, removeCard } = useStore();
+  const { removeTransaction, removeCard, initializeData } = useStore();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [pendingDelete, setPendingDelete] = useState(null);
+  const [dataInitialized, setDataInitialized] = useState(false);
+  
+  // Initialize all data from Supabase on mount - only once per session
+  useEffect(() => {
+    if (isLoaded && user && !dataInitialized) {
+      // Use requestIdleCallback to defer heavy data loading
+      const loadData = () => {
+        initializeData().then(() => {
+          setDataInitialized(true);
+        });
+      };
+      
+      if ('requestIdleCallback' in window) {
+        // @ts-ignore
+        window.requestIdleCallback(loadData, { timeout: 2000 });
+      } else {
+        setTimeout(loadData, 100);
+      }
+    }
+  }, [isLoaded, user, dataInitialized, initializeData]);
 
   const handleConfirm = () => {
     if (!pendingDelete) return setConfirmOpen(false);
@@ -49,7 +72,15 @@ function AuthenticatedApp() {
   useEffect(() => {
     const onNavigate = (e) => {
       const key = e?.detail;
-      if (typeof key === 'string') setActiveTab(key);
+      if (typeof key === 'string') {
+        // Add brief transition state for visual feedback
+        setIsTransitioning(true);
+        // Use setTimeout to ensure state updates before heavy page loads
+        setTimeout(() => {
+          setActiveTab(key);
+          setIsTransitioning(false);
+        }, 50);
+      }
     };
     window.addEventListener('app:navigate', onNavigate);
     return () => window.removeEventListener('app:navigate', onNavigate);
@@ -64,7 +95,11 @@ function AuthenticatedApp() {
       case 'dashboard':
         return <DashboardPage />;
       case 'fuel':
-        return <FindFuelPage />;
+        return (
+          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <FindFuelPage />
+          </div>
+        );
       case 'transactions':
         return <TransactionsPage />;
       case 'card':
@@ -78,6 +113,8 @@ function AuthenticatedApp() {
       case 'rewards':
       case 'refer':
         return <RewardsPage />;
+      case 'wallet':
+        return <WalletPage />;
       case 'drivers':
         return (
           <div className={greenBg}>
@@ -91,10 +128,48 @@ function AuthenticatedApp() {
           </div>
         );
       case 'payroll-overview':
-      case 'payroll-history':
         return (
           <div className={greenBg}>
             <div className="p-6"><PayrollPage /></div>
+          </div>
+        );
+      case 'payroll-history':
+        return (
+          <div className={greenBg}>
+            <div className="p-6"><PayrollHistoryPage /></div>
+          </div>
+        );
+      case 'profile':
+        return (
+          <div className={greenBg}>
+            <div className="p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile</h2>
+                <p className="text-gray-600">Profile settings coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'statements':
+        return (
+          <div className={greenBg}>
+            <div className="p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Statements</h2>
+                <p className="text-gray-600">Billing statements coming soon...</p>
+              </div>
+            </div>
+          </div>
+        );
+      case 'support':
+        return (
+          <div className={greenBg}>
+            <div className="p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-8">
+                <h2 className="text-2xl font-bold text-gray-900 mb-2">Support</h2>
+                <p className="text-gray-600">Support center coming soon...</p>
+              </div>
+            </div>
           </div>
         );
       default:
@@ -118,10 +193,19 @@ function AuthenticatedApp() {
     <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
       <Suspense fallback={
         <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100">
-          <div className="text-emerald-600">Loading...</div>
+          <div className="text-emerald-600 flex flex-col items-center gap-2">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
+            <div>Loading page...</div>
+          </div>
         </div>
       }>
-        {renderPage()}
+        {isTransitioning ? (
+          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100">
+            <div className="text-emerald-600">Switching page...</div>
+          </div>
+        ) : (
+          renderPage()
+        )}
       </Suspense>
       
       <ConfirmDialog 

@@ -2,50 +2,75 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useStore } from '../store';
 
-// Expected schema: table 'shell' with columns:
-// id, brand, name, address, latitude, longitude, price_usd, original_price_usd, cashback_cents, extra_offer
+// Query shell_stations table from Supabase
 export const useSupabaseStations = () => {
-  const addShellStations = useStore((s) => s.addShellStations);
+  const setFuelStations = useStore((s) => s.setFuelStations);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     let cancelled = false;
     const fetchStations = async () => {
-      if (!supabase) return;
+      if (!supabase) {
+        console.log('[useSupabaseStations] Supabase client not available');
+        return;
+      }
+      
       setLoading(true);
       setError(null);
+      
       try {
+        console.log('[useSupabaseStations] Fetching stations from Supabase...');
         const { data, error } = await supabase
-          .from('shell')
-          .select('id, brand, name, address, latitude, longitude, price_usd, original_price_usd, cashback_cents, extra_offer, logo_url');
+          .from('shell_stations')
+          .select('*')
+          .limit(1000);
+          
         if (error) throw error;
         if (cancelled) return;
-        const mapped = (data || []).map((row) => ({
+        
+        console.log('[useSupabaseStations] Received', data?.length || 0, 'stations from Supabase');
+        
+        if (!data || data.length === 0) {
+          console.log('[useSupabaseStations] No stations in database, will use local JSON');
+          return;
+        }
+        
+        const mapped = data.map((row) => ({
           id: row.id,
           brand: row.brand || 'Shell',
-          name: row.name || row.brand || 'Shell',
+          name: row.name || 'Shell Station',
           address: row.address || '',
-          price: row.price_usd ?? null,
-          originalPrice: row.original_price_usd ?? null,
-          cashback: row.cashback_cents ?? 0,
-          extraOffer: row.extra_offer || null,
+          fullAddress: row.full_address || row.address || '',
+          region: row.region || 'Nairobi',
+          price: row.price_usd ?? 2.85,
+          originalPrice: row.original_price_usd ?? row.price_usd * 1.105,
+          cashback: row.cashback_cents ?? 27,
+          extraOffer: row.extra_offer || '',
           logoUrl: row.logo_url || '',
           coordinates: [Number(row.longitude), Number(row.latitude)],
-          distance: '',
-          isOpen: true,
-          offers: [],
+          distance: '0.0 mi',
+          isOpen: row.is_open ?? true,
+          description: row.description || '',
+          url: row.url || '',
+          facilities: Array.isArray(row.facilities) ? row.facilities : [],
+          amenities: Array.isArray(row.amenities) ? row.amenities : [],
+          offers: Array.isArray(row.offers) ? row.offers : [],
         }));
-        if (mapped.length) addShellStations(mapped);
+        
+        console.log('[useSupabaseStations] Mapped', mapped.length, 'stations, setting in store');
+        setFuelStations(mapped);
       } catch (e) {
+        console.error('[useSupabaseStations] Error:', e);
         if (!cancelled) setError(e);
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
+    
     fetchStations();
     return () => { cancelled = true; };
-  }, [addShellStations]);
+  }, [setFuelStations]);
 
   return { loading, error };
 };

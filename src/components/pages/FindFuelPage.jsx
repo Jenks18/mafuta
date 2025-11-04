@@ -15,7 +15,7 @@ const FindFuelPage = () => {
 
   // Handle window resize for responsive layout
   useEffect(() => {
-  const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
@@ -36,14 +36,19 @@ const FindFuelPage = () => {
     setTimeout(() => setShowClaimSuccess(false), 3000);
   };
 
-  // Load stations from Supabase (shell table) on page mount
-  const { loading, error } = useSupabaseStations();
-  const loadLocalShellStations = useStore((s) => s.loadLocalShellStations);
+  const { loadLocalShellStations, fuelStations } = useStore();
 
+  // Try to load from Supabase first
+  const { loading, error } = useSupabaseStations();
+  
+  // Fallback to local JSON if no Supabase data
   useEffect(() => {
-    // As a fallback (e.g., no Supabase), load local stations lazily once
-    loadLocalShellStations();
-  }, [loadLocalShellStations]);
+    // Only load local stations if Supabase isn't loading and we have no stations
+    if (!loading && fuelStations.length === 0) {
+      console.log('[FindFuelPage] No Supabase stations, loading from local JSON');
+      loadLocalShellStations();
+    }
+  }, [loading, fuelStations.length, loadLocalShellStations]);
 
   // If showing station detail, render that instead
   if (showStationDetail && selectedStationId) {
@@ -56,7 +61,7 @@ const FindFuelPage = () => {
 
   return (
     <div className="flex-1 min-h-screen flex flex-col relative">
-  {isDesktop ? (
+      {isDesktop ? (
         <FindFuelDesktop 
           onStationDetail={handleMoreInfo}
           onClaim={handleClaim}
