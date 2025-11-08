@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Mafutapass</string>
+    <string name="title_activity_main">Mafutapass</string>
+    <string name="package_name">com.mafutapass.app</string>
+    <string name="custom_url_scheme">com.mafutapass.app</string>
+</resources>

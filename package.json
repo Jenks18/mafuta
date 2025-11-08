@@ -8,9 +8,15 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "import:stations": "node scripts/import-shell-stations.js"
+    "import:stations": "node scripts/import-shell-stations.js",
+    "android:sync": "npm run build && npx cap sync android",
+    "android:open": "npx cap open android",
+    "android:dev": "npm run build && npx cap sync android && npx cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^7.4.4",
+    "@capacitor/cli": "^7.4.4",
+    "@capacitor/core": "^7.4.4",
     "@clerk/clerk-react": "^5.51.0",
     "@supabase/supabase-js": "^2.75.0",
     "@tailwindcss/postcss": "^4.1.14",
