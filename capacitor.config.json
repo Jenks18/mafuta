@@ -2,8 +2,9 @@
   "appId": "com.mafutapass.app",
   "appName": "Mafutapass",
   "webDir": "dist",
-  "server": {
-    "url": "https://mafutapass.com",
-    "cleartext": true
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
   }
 }
