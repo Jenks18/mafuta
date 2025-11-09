@@ -38,3 +38,117 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Hide Clerk development mode badge */
+.cl-internal-badge,
+[class*="cl-badge"],
+[class*="cl-internal-badge"],
+.cl-rootBox [data-localization-key*="badge"],
+.cl-footer .cl-badge,
+.cl-card .cl-badge {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  height: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Force green theme on all Clerk components */
+.cl-formButtonPrimary,
+.cl-button[data-variant="primary"],
+.cl-formButtonPrimary:not(:disabled),
+button[data-localization-key="formButtonPrimary"] {
+  background-color: #10b981 !important;
+  border-color: #10b981 !important;
+}
+
+.cl-formButtonPrimary:hover,
+.cl-button[data-variant="primary"]:hover,
+.cl-formButtonPrimary:not(:disabled):hover {
+  background-color: #059669 !important;
+  border-color: #059669 !important;
+}
+
+/* Social buttons (Google OAuth) */
+.cl-socialButtonsBlockButton,
+.cl-socialButtonsIconButton {
+  border-color: #d1fae5 !important;
+}
+
+.cl-socialButtonsBlockButton:hover,
+.cl-socialButtonsIconButton:hover {
+  background-color: #d1fae5 !important;
+  border-color: #10b981 !important;
+}
+
+/* Links */
+.cl-footerActionLink,
+.cl-link {
+  color: #10b981 !important;
+}
+
+.cl-footerActionLink:hover,
+.cl-link:hover {
+  color: #059669 !important;
+}
+
+/* Input focus states */
+.cl-formFieldInput:focus,
+input[class*="cl-"]:focus {
+  border-color: #10b981 !important;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1) !important;
+}
+
+/* Headers */
+.cl-headerTitle {
+  color: #047857 !important;
+}
+
+.cl-headerSubtitle {
+  color: #10b981 !important;
+}
+
+/* Make sure the card has proper background */
+.cl-card,
+.cl-modalContent,
+.cl-signIn-root,
+.cl-signUp-root {
+  background-color: white !important;
+}
+
+/* Ensure rootBox maintains green gradient background */
+.cl-rootBox {
+  background: linear-gradient(to bottom right, #d1fae5, #a7f3d0, #d1fae5) !important;
+}
+
+/* Hide only "Secured by Clerk" branding, but keep sign up/sign in links */
+.cl-footerPages,
+.cl-internal-b3fm6y,
+a[href*="clerk.com"]:not(.cl-footerActionLink),
+a[href*="clerk.dev"]:not(.cl-footerActionLink) {
+  display: none !important;
+  visibility: hidden !important;
+  height: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* Keep the footer action (Sign up / Sign in links) visible with green styling */
+.cl-footerAction {
+  display: block !important;
+  visibility: visible !important;
+  margin-top: 1.5rem !important;
+}
+
+.cl-footerActionText {
+  color: #6b7280 !important;
+}
+
+.cl-footerActionLink {
+  color: #10b981 !important;
+  font-weight: 600 !important;
+}
+
+.cl-footerActionLink:hover {
+  color: #059669 !important;
+}

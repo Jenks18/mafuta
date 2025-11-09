@@ -29,15 +29,19 @@
     background: #ffffff;
     margin: 0;
     padding: 0;
+    padding-top: env(safe-area-inset-top);
     min-height: 100vh;
     width: 100%;
     height: 100%;
     overflow-x: hidden;
+    /* Prevent content from scrolling under status bar */
+    position: relative;
   }
 
   #root {
     margin: 0;
     padding: 0;
+    padding-top: env(safe-area-inset-top);
     min-height: 100vh;
     width: 100%;
     height: 100%;
