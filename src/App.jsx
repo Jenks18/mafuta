@@ -442,13 +442,15 @@ function App() {
             {/* Conditionally render SignIn or SignUp based on hash */}
             {authMode === 'sign-up' ? (
               <SignUp 
-                forceRedirectUrl="/"
+                routing="virtual"
                 signInUrl="#/sign-in"
+                afterSignUpUrl="/"
               />
             ) : (
               <SignIn 
-                forceRedirectUrl="/"
+                routing="virtual"
                 signUpUrl="#/sign-up"
+                afterSignInUrl="/"
               />
             )}
           </div>
