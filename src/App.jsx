@@ -224,7 +224,8 @@ function App() {
   // Listen for hash changes to switch between sign-in and sign-up
   useEffect(() => {
     const handleHashChange = () => {
-      if (window.location.hash === '#/sign-up') {
+      const hash = window.location.hash;
+      if (hash === '#/sign-up' || hash === '#sign-up') {
         setAuthMode('sign-up');
       } else {
         setAuthMode('sign-in');
@@ -236,22 +237,31 @@ function App() {
     
     // Listen for changes
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
-
-  // Clear hash after successful authentication
-  useEffect(() => {
-    // If user is signed in, clear any auth-related hash
-    const clearAuthHash = () => {
-      if (window.location.hash === '#/sign-in' || window.location.hash === '#/sign-up' || window.location.hash === '#/') {
-        window.history.replaceState(null, '', window.location.pathname);
+    
+    // Intercept Clerk link clicks to prevent external navigation
+    const interceptClerkLinks = (e) => {
+      const target = e.target.closest('a');
+      if (target && target.href) {
+        // Check if it's trying to go to Clerk's hosted pages
+        if (target.href.includes('accounts.dev') || target.href.includes('clerk.')) {
+          e.preventDefault();
+          e.stopPropagation();
+          // Navigate within our app instead
+          if (target.textContent.toLowerCase().includes('sign up')) {
+            window.location.hash = '#/sign-up';
+          } else if (target.textContent.toLowerCase().includes('sign in')) {
+            window.location.hash = '#/';
+          }
+        }
       }
     };
     
-    // Check on mount and when hash changes
-    clearAuthHash();
-    window.addEventListener('hashchange', clearAuthHash);
-    return () => window.removeEventListener('hashchange', clearAuthHash);
+    document.addEventListener('click', interceptClerkLinks, true);
+    
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      document.removeEventListener('click', interceptClerkLinks, true);
+    };
   }, []);
 
   if (!clerkPubKey) {
@@ -457,10 +467,11 @@ function App() {
             {/* Conditionally render SignIn or SignUp based on hash */}
             {authMode === 'sign-up' ? (
               <SignUp
-                routing="hash"
-                signInUrl="/#/"
-                afterSignUpUrl={window.location.origin}
-                redirectUrl={window.location.origin}
+                path="/sign-up"
+                routing="virtual"
+                signInUrl="/"
+                afterSignUpUrl="/"
+                fallbackRedirectUrl="/"
                 appearance={{
                   elements: {
                     rootBox: 'w-full',
@@ -470,10 +481,11 @@ function App() {
               />
             ) : (
               <SignIn
-                routing="hash"
-                signUpUrl="/#/sign-up"
-                afterSignInUrl={window.location.origin}
-                redirectUrl={window.location.origin}
+                path="/sign-in"
+                routing="virtual"
+                signUpUrl="/"
+                afterSignInUrl="/"
+                fallbackRedirectUrl="/"
                 appearance={{
                   elements: {
                     rootBox: 'w-full',
