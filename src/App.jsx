@@ -219,16 +219,24 @@ function AuthenticatedApp() {
 }
 
 function App() {
-  const [showAuth, setShowAuth] = useState(true);
+  const [authMode, setAuthMode] = useState('sign-in');
 
-  // No need for hash listening anymore - we'll use embedded components always
+  // Listen for hash changes to switch between sign-in and sign-up
   useEffect(() => {
-    // Check if user navigated directly to sign-in or sign-up URLs
-    // This handles Clerk's redirect attempts
-    const path = window.location.pathname;
-    if (path.includes('sign-in') || path.includes('sign-up')) {
-      setShowAuth(true);
-    }
+    const handleHashChange = () => {
+      if (window.location.hash === '#/sign-up') {
+        setAuthMode('sign-up');
+      } else {
+        setAuthMode('sign-in');
+      }
+    };
+    
+    // Set initial mode
+    handleHashChange();
+    
+    // Listen for changes
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
   if (!clerkPubKey) {
@@ -431,11 +439,18 @@ function App() {
               <p className="text-emerald-600 text-lg">Your Fuel Management Platform</p>
             </div>
             
-            {/* Always show sign-in by default - Clerk will handle navigation */}
-            <SignIn 
-              forceRedirectUrl="/"
-              signUpUrl="/"
-            />
+            {/* Conditionally render SignIn or SignUp based on hash */}
+            {authMode === 'sign-up' ? (
+              <SignUp 
+                forceRedirectUrl="/"
+                signInUrl="#/sign-in"
+              />
+            ) : (
+              <SignIn 
+                forceRedirectUrl="/"
+                signUpUrl="#/sign-up"
+              />
+            )}
           </div>
         </div>
       </SignedOut>
