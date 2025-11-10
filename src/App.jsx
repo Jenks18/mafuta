@@ -448,11 +448,6 @@ function App() {
                     card: 'w-full shadow-2xl',
                   }
                 }}
-                forceRedirectUrl="/"
-                signInUrl="/"
-                routing="hash"
-                signInForceRedirectUrl="/"
-                afterSignUpUrl="/"
               />
             ) : (
               <SignIn 
@@ -462,11 +457,6 @@ function App() {
                     card: 'w-full shadow-2xl',
                   }
                 }}
-                forceRedirectUrl="/"
-                signUpUrl="/#/sign-up"
-                routing="hash"
-                signUpForceRedirectUrl="/"
-                afterSignInUrl="/"
               />
             )}
           </div>
