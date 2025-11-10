@@ -239,6 +239,21 @@ function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
+  // Clear hash after successful authentication
+  useEffect(() => {
+    // If user is signed in, clear any auth-related hash
+    const clearAuthHash = () => {
+      if (window.location.hash === '#/sign-in' || window.location.hash === '#/sign-up' || window.location.hash === '#/') {
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    };
+    
+    // Check on mount and when hash changes
+    clearAuthHash();
+    window.addEventListener('hashchange', clearAuthHash);
+    return () => window.removeEventListener('hashchange', clearAuthHash);
+  }, []);
+
   if (!clerkPubKey) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center p-5">
@@ -444,7 +459,8 @@ function App() {
               <SignUp
                 routing="hash"
                 signInUrl="/#/"
-                afterSignUpUrl="/"
+                afterSignUpUrl={window.location.origin}
+                redirectUrl={window.location.origin}
                 appearance={{
                   elements: {
                     rootBox: 'w-full',
@@ -456,7 +472,8 @@ function App() {
               <SignIn
                 routing="hash"
                 signUpUrl="/#/sign-up"
-                afterSignInUrl="/"
+                afterSignInUrl={window.location.origin}
+                redirectUrl={window.location.origin}
                 appearance={{
                   elements: {
                     rootBox: 'w-full',
