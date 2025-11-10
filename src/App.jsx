@@ -442,14 +442,30 @@ function App() {
             {/* Conditionally render SignIn or SignUp based on hash */}
             {authMode === 'sign-up' ? (
               <SignUp 
-                routing="virtual"
-                signInUrl="#/sign-in"
+                appearance={{
+                  elements: {
+                    rootBox: 'w-full',
+                    card: 'w-full shadow-2xl',
+                  }
+                }}
+                forceRedirectUrl="/"
+                signInUrl="/"
+                routing="hash"
+                signInForceRedirectUrl="/"
                 afterSignUpUrl="/"
               />
             ) : (
               <SignIn 
-                routing="virtual"
-                signUpUrl="#/sign-up"
+                appearance={{
+                  elements: {
+                    rootBox: 'w-full',
+                    card: 'w-full shadow-2xl',
+                  }
+                }}
+                forceRedirectUrl="/"
+                signUpUrl="/#/sign-up"
+                routing="hash"
+                signUpForceRedirectUrl="/"
                 afterSignInUrl="/"
               />
             )}
