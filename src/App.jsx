@@ -25,8 +25,8 @@ function ClerkProviderWithRoutes() {
       routerReplace={(to) => navigate(to, { replace: true })}
       signInUrl="/sign-in"
       signUpUrl="/sign-up"
-      signInFallbackRedirectUrl="/"
-      signUpFallbackRedirectUrl="/"
+      signInForceRedirectUrl="/"
+      signUpForceRedirectUrl="/"
       appearance={{
         variables: {
           colorPrimary: '#10b981', // Emerald green
