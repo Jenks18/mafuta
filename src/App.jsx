@@ -78,9 +78,9 @@ function ClerkProviderWithRoutes() {
           
           // Footer
           footer: 'bg-transparent',
-          footerActionText: 'text-gray-600',
-          footerActionLink: 'text-emerald-600 hover:text-emerald-700 font-semibold',
-          footerAction: 'text-gray-600',
+          footerActionText: 'hidden',
+          footerActionLink: 'hidden',
+          footerAction: 'hidden',
           footerPages: 'bg-transparent',
           footerPageLink: 'text-emerald-600 hover:text-emerald-700',
           
