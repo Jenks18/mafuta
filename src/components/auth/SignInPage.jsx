@@ -3,12 +3,8 @@ import { Link } from "react-router-dom";
 
 export default function SignInPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center relative overflow-hidden p-4">
-      <div className="absolute top-1/4 left-1/6 w-32 h-32 bg-gradient-to-r from-emerald-200/30 to-green-200/20 rounded-full blur-2xl"></div>
-      <div className="absolute top-3/4 right-1/6 w-48 h-48 bg-gradient-to-r from-green-200/20 to-emerald-200/15 rounded-full blur-2xl"></div>
-      <div className="absolute bottom-1/4 left-1/3 w-40 h-40 bg-gradient-to-r from-emerald-200/25 to-green-200/15 rounded-full blur-2xl"></div>
-      
-      <div className="relative z-10 w-full max-w-md">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center p-4">
+      <div className="w-full max-w-md">
         <div className="text-center mb-6">
           <div className="flex justify-center mb-4">
             <img 
