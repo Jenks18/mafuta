@@ -1,4 +1,5 @@
 import { SignIn } from "@clerk/clerk-react";
+import { Link } from "react-router-dom";
 
 export default function SignInPage() {
   return (
@@ -23,7 +24,20 @@ export default function SignInPage() {
           <h1 className="text-4xl font-bold text-emerald-700 mb-2">Welcome Back</h1>
           <p className="text-emerald-600 text-lg">Sign in to manage your fuel.</p>
         </div>
-        <SignIn />
+        <SignIn 
+          appearance={{
+            elements: {
+              rootBox: "w-full",
+              card: "shadow-2xl rounded-2xl border border-emerald-200 bg-white w-full",
+            }
+          }}
+        />
+        <p className="text-center mt-6 text-emerald-600">
+          Don't have an account?{' '}
+          <Link to="/sign-up" className="font-semibold text-emerald-700 hover:text-emerald-800 underline">
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );

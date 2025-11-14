@@ -1,4 +1,5 @@
 import { SignUp } from "@clerk/clerk-react";
+import { Link } from "react-router-dom";
 
 export default function SignUpPage() {
   return (
@@ -23,7 +24,20 @@ export default function SignUpPage() {
           <h1 className="text-4xl font-bold text-emerald-700 mb-2">Create Your Account</h1>
           <p className="text-emerald-600 text-lg">Join MafutaPass today.</p>
         </div>
-        <SignUp />
+        <SignUp 
+          appearance={{
+            elements: {
+              rootBox: "w-full",
+              card: "shadow-2xl rounded-2xl border border-emerald-200 bg-white w-full",
+            }
+          }}
+        />
+        <p className="text-center mt-6 text-emerald-600">
+          Already have an account?{' '}
+          <Link to="/sign-in" className="font-semibold text-emerald-700 hover:text-emerald-800 underline">
+            Sign in
+          </Link>
+        </p>
       </div>
     </div>
   );
