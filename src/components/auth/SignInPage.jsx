@@ -25,6 +25,8 @@ export default function SignInPage() {
           <p className="text-emerald-600 text-lg">Sign in to manage your fuel.</p>
         </div>
         <SignIn 
+          forceRedirectUrl="/"
+          signUpUrl="/sign-up"
           appearance={{
             elements: {
               rootBox: "w-full",
