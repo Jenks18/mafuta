@@ -25,8 +25,6 @@ export default function SignUpPage() {
           <p className="text-emerald-600 text-lg">Join MafutaPass today.</p>
         </div>
         <SignUp 
-          forceRedirectUrl="/"
-          signInUrl="/sign-in"
           appearance={{
             elements: {
               rootBox: "w-full",
