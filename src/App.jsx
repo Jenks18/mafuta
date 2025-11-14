@@ -1,288 +1,28 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { ClerkProvider, SignIn, SignUp, SignedIn, SignedOut, useUser } from '@clerk/clerk-react';
+import { lazy, Suspense } from 'react';
+import { Routes, Route, useNavigate } from 'react-router-dom';
+import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import './App.css';
-import { useStore } from './store';
-import ConfirmDialog from './components/ConfirmDialog';
 
 // Layout
 import Layout from './components/layout/Layout';
 
+// Auth Pages
+import SignInPage from './components/auth/SignInPage';
+import SignUpPage from './components/auth/SignUpPage';
+
 // Lazy load pages for code-splitting
-const HomePage = lazy(() => import('./components/pages/HomePage'));
-const FindFuelPage = lazy(() => import('./components/pages/FindFuelPage'));
-const TransactionsPage = lazy(() => import('./components/pages/TransactionsPage'));
-const CardsPage = lazy(() => import('./components/pages/CardsPage'));
-const MorePage = lazy(() => import('./components/pages/MorePage'));
-const RewardsPage = lazy(() => import('./components/pages/RewardsPage'));
-const WalletPage = lazy(() => import('./components/pages/WalletPage'));
-const MapPage = lazy(() => import('./components/pages/MapPage'));
-const DriversPage = lazy(() => import('./components/DriversPage'));
-const VehiclesPage = lazy(() => import('./components/VehiclesPage'));
-const PayrollPage = lazy(() => import('./components/PayrollPage'));
-const PayrollHistoryPage = lazy(() => import('./components/pages/PayrollHistoryPage'));
-const DashboardPage = lazy(() => import('./components/pages/DashboardPage'));
+const AuthenticatedApp = lazy(() => import('./AuthenticatedApp'));
 
 const clerkPubKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
-function AuthenticatedApp() {
-  const { user, isLoaded } = useUser();
-  const [activeTab, setActiveTab] = useState('dashboard');
-  const [isTransitioning, setIsTransitioning] = useState(false);
-  
-  // Get shared state/actions from the store
-  const { removeTransaction, removeCard, initializeData } = useStore();
-
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [pendingDelete, setPendingDelete] = useState(null);
-  const [dataInitialized, setDataInitialized] = useState(false);
-  
-  // Initialize all data from Supabase on mount - only once per session
-  useEffect(() => {
-    if (isLoaded && user && !dataInitialized) {
-      // Use requestIdleCallback to defer heavy data loading
-      const loadData = () => {
-        initializeData().then(() => {
-          setDataInitialized(true);
-        });
-      };
-      
-      if ('requestIdleCallback' in window) {
-        // @ts-ignore
-        window.requestIdleCallback(loadData, { timeout: 2000 });
-      } else {
-        setTimeout(loadData, 100);
-      }
-    }
-  }, [isLoaded, user, dataInitialized, initializeData]);
-
-  const handleConfirm = () => {
-    if (!pendingDelete) return setConfirmOpen(false);
-    if (pendingDelete.type === 'card') removeCard(pendingDelete.id);
-    if (pendingDelete.type === 'tx') removeTransaction(pendingDelete.id);
-    setPendingDelete(null);
-    setConfirmOpen(false);
-  };
-
-  const handleCancel = () => { 
-    setPendingDelete(null);
-    setConfirmOpen(false);
-  };
-
-  // Allow child pages to navigate by dispatching CustomEvent
-  useEffect(() => {
-    const onNavigate = (e) => {
-      const key = e?.detail;
-      if (typeof key === 'string') {
-        // Add brief transition state for visual feedback
-        setIsTransitioning(true);
-        // Use setTimeout to ensure state updates before heavy page loads
-        setTimeout(() => {
-          setActiveTab(key);
-          setIsTransitioning(false);
-        }, 50);
-      }
-    };
-    window.addEventListener('app:navigate', onNavigate);
-    return () => window.removeEventListener('app:navigate', onNavigate);
-  }, []);
-
-  // Page renderer with green theming
-  const renderPage = () => {
-    const greenBg = "flex-1 overflow-y-auto relative z-10 bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 min-h-full";
-    
-    switch (activeTab) {
-      case 'home':
-      case 'dashboard':
-        return <DashboardPage />;
-      case 'fuel':
-        return (
-          <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-            <FindFuelPage />
-          </div>
-        );
-      case 'transactions':
-        return <TransactionsPage />;
-      case 'card':
-      case 'cards':
-        return <CardsPage />;
-      case 'map':
-      case 'trucks-map':
-        return <MapPage />;
-      case 'more':
-        return <MorePage />;
-      case 'rewards':
-      case 'refer':
-        return <RewardsPage />;
-      case 'wallet':
-        return <WalletPage />;
-      case 'drivers':
-        return (
-          <div className={greenBg}>
-            <div className="p-6"><DriversPage /></div>
-          </div>
-        );
-      case 'vehicles':
-        return (
-          <div className={greenBg}>
-            <div className="p-6"><VehiclesPage /></div>
-          </div>
-        );
-      case 'payroll-overview':
-        return (
-          <div className={greenBg}>
-            <div className="p-6"><PayrollPage /></div>
-          </div>
-        );
-      case 'payroll-history':
-        return (
-          <div className={greenBg}>
-            <div className="p-6"><PayrollHistoryPage /></div>
-          </div>
-        );
-      case 'profile':
-        return (
-          <div className={greenBg}>
-            <div className="p-6">
-              <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Profile</h2>
-                <p className="text-gray-600">Profile settings coming soon...</p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'statements':
-        return (
-          <div className={greenBg}>
-            <div className="p-6">
-              <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Statements</h2>
-                <p className="text-gray-600">Billing statements coming soon...</p>
-              </div>
-            </div>
-          </div>
-        );
-      case 'support':
-        return (
-          <div className={greenBg}>
-            <div className="p-6">
-              <div className="bg-white rounded-xl shadow-sm border border-emerald-200 p-8">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">Support</h2>
-                <p className="text-gray-600">Support center coming soon...</p>
-              </div>
-            </div>
-          </div>
-        );
-      default:
-        return <DashboardPage />;
-    }
-  };
-
-  if (!isLoaded) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-6xl mb-4">⛽</div>
-          <h2 className="text-2xl font-bold text-emerald-700">Mafuta</h2>
-          <p className="text-emerald-600 mt-2">Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <Layout activeTab={activeTab} setActiveTab={setActiveTab}>
-      <Suspense fallback={
-        <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100">
-          <div className="text-emerald-600 flex flex-col items-center gap-2">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
-            <div>Loading page...</div>
-          </div>
-        </div>
-      }>
-        {isTransitioning ? (
-          <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100">
-            <div className="text-emerald-600">Switching page...</div>
-          </div>
-        ) : (
-          renderPage()
-        )}
-      </Suspense>
-      
-      <ConfirmDialog 
-        open={confirmOpen}
-        message={pendingDelete?.message || 'Are you sure?'}
-        onConfirm={handleConfirm}
-        onCancel={handleCancel}
-      />
-    </Layout>
-  );
-}
-
-function App() {
-  const [authMode, setAuthMode] = useState('sign-in');
-
-  // Listen for hash changes to switch between sign-in and sign-up
-  useEffect(() => {
-    const handleHashChange = () => {
-      const hash = window.location.hash;
-      if (hash === '#/sign-up' || hash === '#sign-up') {
-        setAuthMode('sign-up');
-      } else {
-        setAuthMode('sign-in');
-      }
-    };
-    
-    // Set initial mode
-    handleHashChange();
-    
-    // Listen for changes
-    window.addEventListener('hashchange', handleHashChange);
-    
-    // Intercept Clerk link clicks to prevent external navigation
-    const interceptClerkLinks = (e) => {
-      const target = e.target.closest('a');
-      if (target && target.href) {
-        // Check if it's trying to go to Clerk's hosted pages
-        if (target.href.includes('accounts.dev') || target.href.includes('clerk.')) {
-          e.preventDefault();
-          e.stopPropagation();
-          // Navigate within our app instead
-          if (target.textContent.toLowerCase().includes('sign up')) {
-            window.location.hash = '#/sign-up';
-          } else if (target.textContent.toLowerCase().includes('sign in')) {
-            window.location.hash = '#/';
-          }
-        }
-      }
-    };
-    
-    document.addEventListener('click', interceptClerkLinks, true);
-    
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      document.removeEventListener('click', interceptClerkLinks, true);
-    };
-  }, []);
-
-  if (!clerkPubKey) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center p-5">
-        <div className="bg-white rounded-3xl p-8 max-w-md shadow-2xl text-center">
-          <div className="text-6xl mb-4">⚠️</div>
-          <h1 className="text-2xl font-bold text-red-600 mb-4">Configuration Required</h1>
-          <p className="text-gray-700 mb-2">Please add your Clerk Publishable Key to the <code className="bg-gray-100 px-2 py-1 rounded">.env</code> file:</p>
-          <div className="bg-gray-50 p-4 rounded-lg text-left text-sm mb-4">
-            <code>VITE_CLERK_PUBLISHABLE_KEY=pk_test_...</code>
-          </div>
-          <p className="text-sm text-gray-600">Check <code className="bg-gray-100 px-1 rounded">CLERK_SUPABASE_INTEGRATION.md</code> for setup instructions.</p>
-        </div>
-      </div>
-    );
-  }
+function ClerkProviderWithRoutes() {
+  const navigate = useNavigate();
 
   return (
     <ClerkProvider 
       publishableKey={clerkPubKey}
+      routerPush={(to) => navigate(to)}
+      routerReplace={(to) => navigate(to, { replace: true })}
       appearance={{
         variables: {
           colorPrimary: '#10b981', // Emerald green
@@ -438,71 +178,54 @@ function App() {
         },
       }}
     >
-      <SignedOut>
-        <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center relative overflow-hidden p-4">
-          {/* Floating background elements */}
-          <div className="absolute top-1/4 left-1/6 w-32 h-32 bg-gradient-to-r from-emerald-200/30 to-green-200/20 rounded-full blur-2xl"></div>
-          <div className="absolute top-3/4 right-1/6 w-48 h-48 bg-gradient-to-r from-green-200/20 to-emerald-200/15 rounded-full blur-2xl"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-40 h-40 bg-gradient-to-r from-emerald-200/25 to-green-200/15 rounded-full blur-2xl"></div>
-          
-          <div className="relative z-10 w-full max-w-md">
-            <div className="text-center mb-6">
-              {/* Logo */}
-              <div className="flex justify-center mb-4">
-                <img 
-                  src="/logos/mafutapass-icon-only.svg" 
-                  alt="MafutaPass Logo" 
-                  className="w-20 h-20"
-                  onError={(e) => {
-                    // Fallback to emoji if image fails to load
-                    e.target.style.display = 'none';
-                    e.target.parentElement.innerHTML = '<div class="text-6xl">⛽</div>';
-                  }}
-                />
-              </div>
-              <h1 className="text-4xl font-bold text-emerald-700 mb-2">MafutaPass</h1>
-              <p className="text-emerald-600 text-lg">Your Fuel Management Platform</p>
-            </div>
-            
-            {/* Conditionally render SignIn or SignUp based on hash */}
-            {authMode === 'sign-up' ? (
-              <SignUp
-                path="/sign-up"
-                routing="virtual"
-                signInUrl="/"
-                afterSignUpUrl="/"
-                fallbackRedirectUrl="/"
-                appearance={{
-                  elements: {
-                    rootBox: 'w-full',
-                    card: 'w-full shadow-2xl',
-                  },
-                }}
-              />
-            ) : (
-              <SignIn
-                path="/sign-in"
-                routing="virtual"
-                signUpUrl="/"
-                afterSignInUrl="/"
-                fallbackRedirectUrl="/"
-                appearance={{
-                  elements: {
-                    rootBox: 'w-full',
-                    card: 'w-full shadow-2xl',
-                  },
-                }}
-              />
-            )}
-          </div>
-        </div>
-      </SignedOut>
-
-      <SignedIn>
-        <AuthenticatedApp />
-      </SignedIn>
+      <Routes>
+        <Route
+          path="/sign-in/*"
+          element={<SignInPage />}
+        />
+        <Route
+          path="/sign-up/*"
+          element={<SignUpPage />}
+        />
+        <Route
+          path="/*"
+          element={
+            <>
+              <SignedIn>
+                <Suspense fallback={<div>Loading...</div>}>
+                  <AuthenticatedApp />
+                </Suspense>
+              </SignedIn>
+              <SignedOut>
+                <SignInPage />
+              </SignedOut>
+            </>
+          }
+        />
+      </Routes>
     </ClerkProvider>
   );
 }
+
+function App() {
+  if (!clerkPubKey) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100 flex items-center justify-center p-5">
+        <div className="bg-white rounded-3xl p-8 max-w-md shadow-2xl text-center">
+          <div className="text-6xl mb-4">⚠️</div>
+          <h1 className="text-2xl font-bold text-red-600 mb-4">Configuration Required</h1>
+          <p className="text-gray-700 mb-2">Please add your Clerk Publishable Key to the <code className="bg-gray-100 px-2 py-1 rounded">.env</code> file:</p>
+          <div className="bg-gray-50 p-4 rounded-lg text-left text-sm mb-4">
+            <code>VITE_CLERK_PUBLISHABLE_KEY=pk_test_...</code>
+          </div>
+          <p className="text-sm text-gray-600">Check <code className="bg-gray-100 px-1 rounded">CLERK_SUPABASE_INTEGRATION.md</code> for setup instructions.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <ClerkProviderWithRoutes />;
+}
+
 
 export default App;

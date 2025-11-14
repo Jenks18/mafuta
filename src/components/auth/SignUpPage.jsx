@@ -20,10 +20,13 @@ export default function SignUpPage() {
               }}
             />
           </div>
-          <h1 className="text-4xl font-bold text-emerald-700 mb-2">MafutaPass</h1>
-          <p className="text-emerald-600 text-lg">Your Fuel Management Platform</p>
+          <h1 className="text-4xl font-bold text-emerald-700 mb-2">Create Your Account</h1>
+          <p className="text-emerald-600 text-lg">Join MafutaPass today.</p>
         </div>
-        <SignUp path="/sign-up" routing="path" signInUrl="/sign-in" afterSignUpUrl="/" />
+        <SignUp 
+          signInUrl="/sign-in"
+          fallbackRedirectUrl="/"
+        />
       </div>
     </div>
   );
