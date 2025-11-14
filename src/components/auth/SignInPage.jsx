@@ -23,10 +23,7 @@ export default function SignInPage() {
           <h1 className="text-4xl font-bold text-emerald-700 mb-2">Welcome Back</h1>
           <p className="text-emerald-600 text-lg">Sign in to manage your fuel.</p>
         </div>
-        <SignIn 
-          signUpUrl="/sign-up"
-          fallbackRedirectUrl="/"
-        />
+        <SignIn />
       </div>
     </div>
   );

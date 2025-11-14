@@ -23,6 +23,10 @@ function ClerkProviderWithRoutes() {
       publishableKey={clerkPubKey}
       routerPush={(to) => navigate(to)}
       routerReplace={(to) => navigate(to, { replace: true })}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
       appearance={{
         variables: {
           colorPrimary: '#10b981', // Emerald green

@@ -23,10 +23,7 @@ export default function SignUpPage() {
           <h1 className="text-4xl font-bold text-emerald-700 mb-2">Create Your Account</h1>
           <p className="text-emerald-600 text-lg">Join MafutaPass today.</p>
         </div>
-        <SignUp 
-          signInUrl="/sign-in"
-          fallbackRedirectUrl="/"
-        />
+        <SignUp />
       </div>
     </div>
   );
