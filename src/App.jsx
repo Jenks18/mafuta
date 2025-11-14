@@ -44,7 +44,7 @@ function ClerkProviderWithRoutes() {
         },
         elements: {
           // Root card styling
-          rootBox: 'bg-gradient-to-br from-emerald-50 via-green-50 to-emerald-100',
+          rootBox: 'bg-transparent',
           card: 'shadow-2xl rounded-2xl border border-emerald-200 bg-white',
           
           // Header
