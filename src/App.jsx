@@ -76,13 +76,13 @@ function ClerkProviderWithRoutes() {
           dividerLine: 'bg-emerald-200',
           dividerText: 'text-gray-500 text-sm',
           
-          // Footer
-          footer: 'bg-transparent',
+          // Footer - completely hidden
+          footer: 'hidden',
           footerActionText: 'hidden',
           footerActionLink: 'hidden',
           footerAction: 'hidden',
-          footerPages: 'bg-transparent',
-          footerPageLink: 'text-emerald-600 hover:text-emerald-700',
+          footerPages: 'hidden',
+          footerPageLink: 'hidden',
           
           // Alerts and notifications
           alertText: 'text-sm text-emerald-700',
