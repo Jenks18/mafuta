@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, Navigate } from 'react-router-dom';
 import { ClerkProvider, SignedIn, SignedOut } from '@clerk/clerk-react';
 import './App.css';
 
@@ -192,7 +192,7 @@ function ClerkProviderWithRoutes() {
           element={<SignUpPage />}
         />
         <Route
-          path="/*"
+          path="/"
           element={
             <>
               <SignedIn>
@@ -201,9 +201,19 @@ function ClerkProviderWithRoutes() {
                 </Suspense>
               </SignedIn>
               <SignedOut>
-                <SignInPage />
+                <Navigate to="/sign-in" replace />
               </SignedOut>
             </>
+          }
+        />
+        <Route
+          path="/*"
+          element={
+            <SignedIn>
+              <Suspense fallback={<div>Loading...</div>}>
+                <AuthenticatedApp />
+              </Suspense>
+            </SignedIn>
           }
         />
       </Routes>
