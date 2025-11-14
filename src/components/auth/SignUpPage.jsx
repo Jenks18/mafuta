@@ -27,7 +27,7 @@ export default function SignUpPage() {
           appearance={{
             elements: {
               rootBox: "w-full",
-              card: "shadow-2xl rounded-2xl border border-emerald-200 bg-white w-full",
+              card: "rounded-2xl border border-emerald-200 bg-white w-full",
             }
           }}
         />
