@@ -31,12 +31,6 @@ export default function SignInPage() {
             }
           }}
         />
-        <p className="text-center mt-6 text-emerald-600">
-          Don't have an account?{' '}
-          <Link to="/sign-up" className="font-semibold text-emerald-700 hover:text-emerald-800 underline">
-            Sign up
-          </Link>
-        </p>
       </div>
     </div>
   );

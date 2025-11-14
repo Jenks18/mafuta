@@ -31,12 +31,6 @@ export default function SignUpPage() {
             }
           }}
         />
-        <p className="text-center mt-6 text-emerald-600">
-          Already have an account?{' '}
-          <Link to="/sign-in" className="font-semibold text-emerald-700 hover:text-emerald-800 underline">
-            Sign in
-          </Link>
-        </p>
       </div>
     </div>
   );
