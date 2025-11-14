@@ -107,14 +107,14 @@ function ClerkProviderWithRoutes() {
           organizationSwitcherTriggerIcon: 'text-emerald-600',
           
           // User button
-          userButtonPopoverCard: 'shadow-2xl border border-emerald-200',
+          userButtonPopoverCard: 'border border-emerald-200',
           userButtonPopoverActionButton: 'hover:bg-emerald-50',
           userButtonPopoverActionButtonText: 'text-gray-700',
           userButtonPopoverActionButtonIcon: 'text-emerald-600',
           
           // Modal
           modalBackdrop: 'bg-black/50',
-          modalContent: 'bg-white shadow-2xl rounded-2xl border border-emerald-200',
+          modalContent: 'bg-white rounded-2xl border border-emerald-200',
           modalCloseButton: 'text-gray-500 hover:text-emerald-600',
           
           // Badge - Hide development mode badge
@@ -140,7 +140,7 @@ function ClerkProviderWithRoutes() {
           main: 'bg-white rounded-2xl',
           
           // Internal card
-          __internal_cardBox: 'shadow-2xl rounded-2xl border border-emerald-200 bg-white',
+          __internal_cardBox: 'rounded-2xl border border-emerald-200 bg-white',
           
           // Profile section
           profileSection: 'border-t border-emerald-100',

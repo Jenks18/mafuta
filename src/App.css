@@ -116,9 +116,9 @@ input[class*="cl-"]:focus {
   background-color: white !important;
 }
 
-/* Ensure rootBox maintains green gradient background */
+/* Ensure rootBox is transparent to show page background */
 .cl-rootBox {
-  background: linear-gradient(to bottom right, #d1fae5, #a7f3d0, #d1fae5) !important;
+  background: transparent !important;
 }
 
 /* Hide only "Secured by Clerk" branding, but keep sign up/sign in links */
