@@ -45,7 +45,7 @@ function ClerkProviderWithRoutes() {
         elements: {
           // Root card styling
           rootBox: 'bg-transparent',
-          card: 'shadow-2xl rounded-2xl border border-emerald-200 bg-white',
+          card: 'rounded-2xl border border-emerald-200 bg-white',
           
           // Header
           headerTitle: 'text-emerald-700 font-bold text-2xl',
