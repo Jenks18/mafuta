@@ -25,6 +25,7 @@ export const useDashboardData = () => {
     },
     accountBalance: 0,
     fuelCardBalance: 0,
+    primaryFuelCard: null,
     recentTransactions: [],
     loading: true,
     error: null,
@@ -124,14 +125,18 @@ export const useDashboardData = () => {
         // Fetch wallet balance
         const walletBalance = profile.wallet_balance || 0;
 
-        // Fetch fuel cards total balance
+        // Fetch fuel cards with full details
         const { data: fuelCards } = await supabase
           .from('fuel_cards')
-          .select('balance')
-          .eq('organization_id', profile.organization_id);
+          .select('*')
+          .eq('organization_id', profile.organization_id)
+          .order('created_at', { ascending: false });
 
         const totalFuelCardBalance = fuelCards
           ?.reduce((sum, card) => sum + (card.balance || 0), 0) || 0;
+
+        // Get primary fuel card (first one or most recently used)
+        const primaryCard = fuelCards?.[0] || null;
 
         // Calculate savings (placeholder: 10% of spent as rewards/cashback)
         const savings = spent * 0.10;
@@ -183,6 +188,7 @@ export const useDashboardData = () => {
           },
           accountBalance: walletBalance,
           fuelCardBalance: totalFuelCardBalance,
+          primaryFuelCard: primaryCard,
           recentTransactions: recentTx || [],
           loading: false,
           error: null,
