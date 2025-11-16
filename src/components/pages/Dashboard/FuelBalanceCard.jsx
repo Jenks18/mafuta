@@ -1,9 +1,19 @@
 import React from 'react';
+import { useDashboardData } from '../../../hooks/useDashboardData';
 
 const currencyKES = (n) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
 
 const FuelBalanceCard = () => {
-  const balance = 475000; // KES placeholder
+  const { fuelCardBalance, loading } = useDashboardData();
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 md:p-5 animate-pulse">
+        <div className="h-20 bg-gray-200 rounded"></div>
+      </div>
+    );
+  }
+
   const card = {
     last4: '1234',
     holder: 'Mafuta Fleet',
@@ -19,7 +29,7 @@ const FuelBalanceCard = () => {
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
             <div className="text-[11px] md:text-xs text-gray-500">Fuel card balance</div>
-            <div className="text-lg md:text-xl font-bold text-gray-900 truncate">{currencyKES(balance)}</div>
+            <div className="text-lg md:text-xl font-bold text-gray-900 truncate">{currencyKES(fuelCardBalance)}</div>
           </div>
           <button className="px-2.5 md:px-3 py-1.5 md:py-2 text-xs md:text-sm bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg hover:bg-emerald-100 shrink-0">Top up</button>
         </div>

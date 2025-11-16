@@ -1,18 +1,30 @@
 import React, { useMemo, useState } from 'react';
-import { useStore } from '../../../store';
+import { useDashboardData } from '../../../hooks/useDashboardData';
 
 const currencyKES = (n) => new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', maximumFractionDigits: 0 }).format(n);
 
 const RecentTransactions = () => {
-  const { transactions } = useStore();
+  const { recentTransactions, loading } = useDashboardData();
   const [tab, setTab] = useState('approved');
 
   const items = useMemo(() => {
-    const list = (transactions || []).slice().sort((a, b) => new Date(b.date) - new Date(a.date));
-    return list.filter((t) => (tab === 'approved' ? t.status !== 'declined' : t.status === 'declined')).slice(0, 7);
-  }, [transactions, tab]);
+    if (!recentTransactions) return [];
+    return recentTransactions
+      .filter((t) => (tab === 'approved' ? t.status !== 'declined' : t.status === 'declined'))
+      .slice(0, 7);
+  }, [recentTransactions, tab]);
 
-  const toKES = (usd) => Math.round((usd || 0) * 130);
+  if (loading) {
+    return (
+      <div className="px-4 md:px-5 py-6">
+        <div className="animate-pulse space-y-3">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="h-12 bg-gray-200 rounded"></div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 shadow-sm">
@@ -44,12 +56,12 @@ const RecentTransactions = () => {
               </tr>
             )}
             {items.map((t) => (
-              <tr key={t.id || `${t.date}-${t.station}`} className="border-b last:border-b-0 hover:bg-gray-50">
-                <td className="px-4 md:px-5 py-3 text-gray-700 whitespace-nowrap">{new Date(t.date).toLocaleDateString()}</td>
-                <td className="px-4 md:px-5 py-3 text-gray-800 max-w-[160px] md:max-w-none truncate">{t.station || t.merchant || 'Shell Station'}</td>
-                <td className="px-4 md:px-5 py-3 text-gray-600 whitespace-nowrap">{t.vehicle || 'KDJ 123A'}</td>
-                <td className="px-4 md:px-5 py-3 text-gray-600 max-w-[120px] md:max-w-none truncate">{t.driver || '—'}</td>
-                <td className="px-4 md:px-5 py-3 text-right font-medium text-gray-900 whitespace-nowrap">{currencyKES(toKES(t.amount))}</td>
+              <tr key={t.id} className="border-b last:border-b-0 hover:bg-gray-50">
+                <td className="px-4 md:px-5 py-3 text-gray-700 whitespace-nowrap">{new Date(t.created_at).toLocaleDateString()}</td>
+                <td className="px-4 md:px-5 py-3 text-gray-800 max-w-[160px] md:max-w-none truncate">{t.station_name || t.merchant || 'Shell Station'}</td>
+                <td className="px-4 md:px-5 py-3 text-gray-600 whitespace-nowrap">{t.vehicles?.registration_number || '—'}</td>
+                <td className="px-4 md:px-5 py-3 text-gray-600 max-w-[120px] md:max-w-none truncate">{t.drivers ? `${t.drivers.first_name} ${t.drivers.last_name}` : '—'}</td>
+                <td className="px-4 md:px-5 py-3 text-right font-medium text-gray-900 whitespace-nowrap">{currencyKES(t.amount)}</td>
                 <td className="px-4 md:px-5 py-3">
                   {t.status === 'declined' ? (
                     <span className="inline-flex items-center gap-1 text-red-700 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">● Declined</span>
