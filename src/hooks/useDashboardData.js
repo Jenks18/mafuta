@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabaseClient';
 
 /**
  * Hook to fetch real-time dashboard data from database
+ * Auto-creates user profile if it doesn't exist
  */
 export const useDashboardData = () => {
   const { user } = useUser();
