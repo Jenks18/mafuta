@@ -32,7 +32,7 @@ export function useUserData() {
           setSupabaseProfile({
             account_type: user.unsafeMetadata?.accountType || null,
             onboarded: user.unsafeMetadata?.onboarded || false,
-            clerk_user_id: user.id,
+            clerk_id: user.id,
             email: user.primaryEmailAddress?.emailAddress,
             full_name: user.fullName,
             avatar_url: user.imageUrl
@@ -55,7 +55,7 @@ export function useUserData() {
           setSupabaseProfile({
             account_type: user.unsafeMetadata?.accountType || null,
             onboarded: user.unsafeMetadata?.onboarded || false,
-            clerk_user_id: user.id,
+            clerk_id: user.id,
             email: user.primaryEmailAddress?.emailAddress,
             full_name: user.fullName,
             avatar_url: user.imageUrl
@@ -72,7 +72,7 @@ export function useUserData() {
           setSupabaseProfile({
             account_type: user.unsafeMetadata?.accountType || null,
             onboarded: user.unsafeMetadata?.onboarded || false,
-            clerk_user_id: user.id,
+            clerk_id: user.id,
             email: user.primaryEmailAddress?.emailAddress,
             full_name: user.fullName,
             avatar_url: user.imageUrl

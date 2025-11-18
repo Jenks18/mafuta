@@ -30,7 +30,7 @@ export async function syncClerkUserToSupabase(clerkUser) {
     const { data: existingUser } = await supabase
       .from('users')
       .select('*')
-      .eq('clerk_user_id', userId)
+      .eq('clerk_id', userId)
       .single();
 
     if (existingUser) {
@@ -43,7 +43,7 @@ export async function syncClerkUserToSupabase(clerkUser) {
           avatar_url: imageUrl,
           updated_at: new Date().toISOString()
         })
-        .eq('clerk_user_id', userId)
+        .eq('clerk_id', userId)
         .select()
         .single();
 
@@ -59,7 +59,7 @@ export async function syncClerkUserToSupabase(clerkUser) {
       const { data, error } = await supabase
         .from('users')
         .insert({
-          clerk_user_id: userId,
+          clerk_id: userId,
           email,
           full_name: fullName,
           avatar_url: imageUrl,
@@ -102,7 +102,7 @@ export async function getUserProfile(clerkUserId) {
     const { data, error } = await supabase
       .from('users')
       .select('*')
-      .eq('clerk_user_id', clerkUserId)
+      .eq('clerk_id', clerkUserId)
       .single();
 
     if (error) {
@@ -135,7 +135,7 @@ export async function updateUserOnboarding(clerkUserId, accountType, companyData
         onboarded: true,
         updated_at: new Date().toISOString()
       })
-      .eq('clerk_user_id', clerkUserId)
+      .eq('clerk_id', clerkUserId)
       .select()
       .single();
 

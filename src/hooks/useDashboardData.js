@@ -84,7 +84,7 @@ export const useDashboardData = () => {
         let { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('organization_id, wallet_balance')
-          .eq('clerk_user_id', user.id)
+          .eq('clerk_id', user.id)
           .maybeSingle();
 
         // If profile doesn't exist, create it
@@ -93,9 +93,10 @@ export const useDashboardData = () => {
           const { data: newProfile, error: createError } = await supabase
             .from('profiles')
             .insert({
-              clerk_user_id: user.id,
+              clerk_id: user.id,
               email: user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress,
-              full_name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+              first_name: user.firstName,
+              last_name: user.lastName,
               wallet_balance: 0,
               role: 'fleet_manager',
             })

@@ -60,7 +60,7 @@ export default function FleetTransactionsPage() {
       const { data: currentUser } = await supabase
         .from('users')
         .select('id')
-        .eq('clerk_user_id', user.id)
+        .eq('clerk_id', user.id)
         .single();
 
       const { error } = await supabase
@@ -93,7 +93,7 @@ export default function FleetTransactionsPage() {
       const { data: currentUser } = await supabase
         .from('users')
         .select('id')
-        .eq('clerk_user_id', user.id)
+        .eq('clerk_id', user.id)
         .single();
 
       const { error } = await supabase

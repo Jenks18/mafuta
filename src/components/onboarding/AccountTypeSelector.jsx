@@ -50,7 +50,7 @@ export default function AccountTypeSelector() {
               account_type: accountType,
               updated_at: new Date().toISOString()
             })
-            .eq('clerk_user_id', user.id);
+            .eq('clerk_id', user.id);
 
           if (error) {
             console.warn('⚠️ Supabase update failed:', error);
