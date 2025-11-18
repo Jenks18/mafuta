@@ -80,14 +80,32 @@ export const useDashboardData = () => {
         const { nextMonday, nextSunday } = getNextWeekDates();
 
         // Get user's organization/profile
-        const { data: profile } = await supabase
+        let { data: profile, error: profileError } = await supabase
           .from('profiles')
           .select('organization_id, wallet_balance')
           .eq('clerk_user_id', user.id)
           .single();
 
-        if (!profile) {
-          throw new Error('Profile not found');
+        // If profile doesn't exist, create it
+        if (!profile || profileError) {
+          const { data: newProfile, error: createError } = await supabase
+            .from('profiles')
+            .insert({
+              clerk_user_id: user.id,
+              email: user.primaryEmailAddress?.emailAddress || user.emailAddresses?.[0]?.emailAddress,
+              full_name: user.fullName || `${user.firstName || ''} ${user.lastName || ''}`.trim(),
+              wallet_balance: 0,
+              role: 'fleet_manager',
+            })
+            .select('organization_id, wallet_balance')
+            .single();
+
+          if (createError) {
+            console.error('Error creating profile:', createError);
+            throw new Error('Unable to create user profile');
+          }
+          
+          profile = newProfile;
         }
 
         // Fetch transactions for current week
