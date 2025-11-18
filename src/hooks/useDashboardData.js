@@ -85,10 +85,11 @@ export const useDashboardData = () => {
           .from('profiles')
           .select('organization_id, wallet_balance')
           .eq('clerk_user_id', user.id)
-          .single();
+          .maybeSingle();
 
         // If profile doesn't exist, create it
-        if (!profile || profileError) {
+        if (!profile) {
+          console.log('Profile not found, creating new profile for user:', user.id);
           const { data: newProfile, error: createError } = await supabase
             .from('profiles')
             .insert({
@@ -103,10 +104,15 @@ export const useDashboardData = () => {
 
           if (createError) {
             console.error('Error creating profile:', createError);
-            throw new Error('Unable to create user profile');
+            // Set empty defaults to allow app to function
+            profile = { organization_id: null, wallet_balance: 0 };
+          } else {
+            profile = newProfile;
           }
-          
-          profile = newProfile;
+        }
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error('Error fetching profile:', profileError);
         }
 
         // Fetch transactions for current week
