@@ -1,33 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useStore } from '../../store';
 import { supabase, isSupabaseConfigured } from '../../lib/supabaseClient';
 
-const mockDrivers = [
-  { id: 1, name: 'Benjamin Johannsen', type: '1099/W2', card: '8171', instant: true, quickPay: 0.00, status: 'PENDING' },
-  { id: 2, name: 'Elizabeth Williamson', type: '1099/W2', card: '9345', instant: true, quickPay: 0.00, status: 'PENDING' },
-  { id: 3, name: 'Juan Villareal', type: '1099/W2', card: '8787', instant: true, quickPay: 0.00, status: 'PENDING' },
-  { id: 4, name: 'James Newton', type: '1099/W2', card: '3352', instant: false, quickPay: 0.00, status: 'PENDING' },
-  { id: 5, name: 'Leslie Stephenson', type: '1099/W2', card: '7713', instant: true, quickPay: 0.00, status: 'PENDING' },
-];
-
-const fundingOptions = [
-  { id: 'card-1', label: 'Mastercard ending in 8171' },
-  { id: 'bank-1', label: 'JP Morgan Chase' },
-];
-
 const PayrollPage = () => {
-  const storeProfiles = useStore((s) => s.profiles);
-  const storeContacts = useStore((s) => s.contacts);
+  const { drivers: storeDrivers, cards, loadDrivers, loadCards } = useStore();
+  const [isLoading, setIsLoading] = useState(true);
+  
+  useEffect(() => {
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([loadDrivers(), loadCards()]);
+      setIsLoading(false);
+    };
+    loadData();
+  }, [loadDrivers, loadCards]);
 
-  const initialDrivers = (storeProfiles && storeProfiles.length > 0)
-    ? storeProfiles.map((p, i) => ({ id: p.id || `p-${i}`, name: p.full_name || p.email || `Driver ${i+1}`, type: p.role || '1099/W2', card: '----', instant: true, quickPay: 0.00, status: 'PENDING' }))
-    : (storeContacts && storeContacts.length > 0)
-      ? storeContacts.map((c, i) => ({ id: `c-${i}`, name: c.name, type: '1099/W2', card: '----', instant: true, quickPay: 0.00, status: 'PENDING' }))
-      : mockDrivers;
+  // Convert database drivers to payroll format
+  const payrollDrivers = useMemo(() => {
+    return storeDrivers.map(driver => {
+      // Find assigned card for this driver
+      const assignedCard = cards.find(card => card.assigned_driver_id === driver.id);
+      
+      return {
+        id: driver.id,
+        name: `${driver.first_name || ''} ${driver.last_name || ''}`.trim() || driver.email || 'Driver',
+        type: driver.employment_type || '1099/W2',
+        card: assignedCard?.last_four || '----',
+        instant: assignedCard?.status === 'active',
+        quickPay: 0.00,
+        status: 'PENDING'
+      };
+    });
+  }, [storeDrivers, cards]);
 
-  const [drivers, setDrivers] = useState(initialDrivers);
-  const [instantSource, setInstantSource] = useState(fundingOptions[0].id);
-  const [bankSource, setBankSource] = useState(fundingOptions[1].id);
+  const [drivers, setDrivers] = useState(payrollDrivers);
+  
+  // Update local state when database drivers change
+  useEffect(() => {
+    setDrivers(payrollDrivers);
+  }, [payrollDrivers]);
+
+  // Funding sources from cards
+  const fundingOptions = useMemo(() => {
+    const cardOptions = cards
+      .filter(card => card.status === 'active')
+      .map(card => ({
+        id: card.id,
+        label: `${card.provider || 'Card'} ending in ${card.last_four || '****'}`
+      }));
+    
+    return cardOptions.length > 0 ? cardOptions : [
+      { id: 'default', label: 'No active cards available' }
+    ];
+  }, [cards]);
+
+  const [instantSource, setInstantSource] = useState(fundingOptions[0]?.id || 'default');
+  const [bankSource, setBankSource] = useState(fundingOptions[0]?.id || 'default');
 
   const updateQuickPay = (id, value) => {
     setDrivers((prev) => prev.map(d => d.id === id ? { ...d, quickPay: value } : d));
@@ -83,6 +111,19 @@ const PayrollPage = () => {
       setLoadingMap((m) => ({ ...m, [driver.id]: false }));
     }, 800);
   };
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-gray-900">Payroll Overview</h1>
+        </div>
+        <div className="flex items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

@@ -27,6 +27,8 @@ function ClerkProviderWithRoutes() {
       signUpUrl="/sign-up"
       signInFallbackRedirectUrl="/"
       signUpFallbackRedirectUrl="/"
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
       appearance={{
         variables: {
           colorPrimary: '#10b981', // Emerald green
