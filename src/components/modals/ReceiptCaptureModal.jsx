@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
-import { processReceiptOCR, imageToBase64, validateReceiptData } from '../services/receiptOCR';
-import { supabase } from '../lib/supabaseClient';
+import { processReceiptOCR, imageToBase64, validateReceiptData } from '../../services/receiptOCR';
+import { supabase } from '../../lib/supabaseClient';
 
 /**
  * Receipt Capture Modal
