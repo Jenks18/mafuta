@@ -16,14 +16,45 @@ const TransactionsList = ({ onTransactionSelect }) => {
             className="p-4 hover:bg-gray-50 cursor-pointer transition-colors"
             onClick={() => onTransactionSelect && onTransactionSelect(transaction)}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <p className="font-medium text-gray-900">{transaction.desc}</p>
-                <p className="text-sm text-gray-500">{transaction.date}</p>
-              </div>
-              <div className="text-right">
-                <p className="font-semibold text-gray-900">{formatCurrency(transaction.amount)}</p>
-                <p className="text-sm text-emerald-600">Completed</p>
+            <div className="flex items-center gap-3">
+              {/* Receipt Thumbnail */}
+              {transaction.receipt_image_url && (
+                <div className="flex-shrink-0">
+                  <img
+                    src={transaction.receipt_image_url}
+                    alt="Receipt"
+                    className="w-12 h-12 object-cover rounded border border-gray-200"
+                  />
+                </div>
+              )}
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{transaction.desc}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <p className="text-sm text-gray-500">{transaction.date}</p>
+                      {transaction.ocr_confidence && (
+                        <span className={`text-xs px-2 py-0.5 rounded-full ${
+                          transaction.ocr_confidence >= 80 ? 'bg-emerald-100 text-emerald-700' :
+                          transaction.ocr_confidence >= 60 ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-red-100 text-red-700'
+                        }`}>
+                          {transaction.ocr_confidence}% OCR
+                        </span>
+                      )}
+                      {transaction.manual_review_required && (
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-700">
+                          ⚠️ Review
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <p className="font-semibold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                    <p className="text-sm text-emerald-600">Completed</p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
