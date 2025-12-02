@@ -37,6 +37,47 @@ const TransactionForm = ({ onAdd }) => {
       } catch (e) {
         console.warn('Could not parse OCR date');
       }
+    }
+    if (receiptData.ocrData.stationName) {
+      newFormData.desc = `Fuel purchase at ${receiptData.ocrData.stationName}`;
+    }
+
+    setFormData(newFormData);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (formData.desc && formData.amount) {
+      onAdd({
+        id: Date.now(),
+        date: formData.date,
+        desc: formData.desc,
+        amount: parseFloat(formData.amount),
+        receipt_image_url: formData.receiptImageUrl,
+        ocr_data: formData.ocrData,
+        ocr_confidence: formData.ocrConfidence,
+        ocr_status: formData.ocrStatus || 'manual',
+        manual_review_required: formData.ocrData?.validation?.requiresManualReview || false,
+      });
+      setFormData({
+        date: new Date().toISOString().split('T')[0],
+        desc: '',
+        amount: '',
+        receiptImageUrl: null,
+        ocrData: null,
+        ocrConfidence: null,
+        ocrStatus: 'manual',
+      });
+    }
+  };
+
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
   return (
     <div>
       <div className="flex items-center justify-between mb-4">
@@ -91,59 +132,11 @@ const TransactionForm = ({ onAdd }) => {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-        <button
-          type="submit"
-          className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-6 py-2 rounded-lg transition-colors"
-        >
-          Add Transaction
-        </button>
-      </form>
+            </button>
+          </div>
+        </div>
+      )}
 
-      {/* Receipt Capture Modal */}
-      <ReceiptCaptureModal
-        isOpen={showReceiptModal}
-        onClose={() => setShowReceiptModal(false)}
-        onReceiptProcessed={handleReceiptProcessed}
-      />
-    </div>
-  );
-};
-
-export default TransactionForm;
-    if (formData.desc && formData.amount) {
-      onAdd({
-        id: Date.now(),
-        date: formData.date,
-        desc: formData.desc,
-        amount: parseFloat(formData.amount),
-        receipt_image_url: formData.receiptImageUrl,
-        ocr_data: formData.ocrData,
-        ocr_confidence: formData.ocrConfidence,
-        ocr_status: formData.ocrStatus || 'manual',
-        manual_review_required: formData.ocrData?.validation?.requiresManualReview || false,
-      });
-      setFormData({
-        date: new Date().toISOString().split('T')[0],
-        desc: '',
-        amount: '',
-        receiptImageUrl: null,
-        ocrData: null,
-        ocrConfidence: null,
-        ocrStatus: 'manual',
-      });
-    }
-  };
-
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
-  };
-
-  return (
-    <div>
-      <h2 className="text-lg font-semibold text-gray-900 mb-4">Add New Transaction</h2>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
@@ -202,6 +195,13 @@ export default TransactionForm;
           Add Transaction
         </button>
       </form>
+
+      {/* Receipt Capture Modal */}
+      <ReceiptCaptureModal
+        isOpen={showReceiptModal}
+        onClose={() => setShowReceiptModal(false)}
+        onReceiptProcessed={handleReceiptProcessed}
+      />
     </div>
   );
 };
