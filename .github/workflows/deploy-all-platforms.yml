@@ -1,0 +1,232 @@
+name: Deploy to All Platforms
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  NODE_VERSION: '20.x'
+
+jobs:
+  # Job 1: Deploy Web (Vercel handles this automatically, but we validate build)
+  web-build:
+    name: Validate Web Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build web app
+        run: npm run build
+        env:
+          VITE_GOOGLE_VISION_API_KEY: ${{ secrets.VITE_GOOGLE_VISION_API_KEY }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      
+      - name: Upload web build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-dist
+          path: dist/
+          retention-days: 7
+
+  # Job 2: Build Android APK
+  android-build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    needs: web-build
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build web app
+        run: npm run build
+        env:
+          VITE_GOOGLE_VISION_API_KEY: ${{ secrets.VITE_GOOGLE_VISION_API_KEY }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      
+      - name: Sync Capacitor
+        run: npx cap sync android
+      
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/mafutapass.keystore
+      
+      - name: Create keystore.properties
+        run: |
+          cat > android/keystore.properties << EOF
+          storeFile=mafutapass.keystore
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+      
+      - name: Build release APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleRelease
+      
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          retention-days: 30
+      
+      - name: Upload to Google Play Internal Testing
+        if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.mafutapass.app
+          releaseFiles: android/app/build/outputs/apk/release/app-release.apk
+          track: internal
+          status: completed
+
+  # Job 3: Build Android App Bundle (AAB) for Play Store
+  android-bundle:
+    name: Build Android Bundle (AAB)
+    runs-on: ubuntu-latest
+    needs: web-build
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Build web app
+        run: npm run build
+        env:
+          VITE_GOOGLE_VISION_API_KEY: ${{ secrets.VITE_GOOGLE_VISION_API_KEY }}
+          VITE_CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+      
+      - name: Sync Capacitor
+        run: npx cap sync android
+      
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > android/mafutapass.keystore
+      
+      - name: Create keystore.properties
+        run: |
+          cat > android/keystore.properties << EOF
+          storeFile=mafutapass.keystore
+          storePassword=${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.ANDROID_KEY_ALIAS }}
+          keyPassword=${{ secrets.ANDROID_KEY_PASSWORD }}
+          EOF
+      
+      - name: Build release Bundle
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease
+      
+      - name: Upload Bundle artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-bundle
+          path: android/app/build/outputs/bundle/release/app-release.aab
+          retention-days: 30
+      
+      - name: Upload to Google Play Production
+        if: secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != ''
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.mafutapass.app
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: production
+          status: draft
+          whatsNewDirectory: metadata/release-notes
+
+  # Job 4: Create GitHub Release with APK
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [android-build, android-bundle]
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Download APK
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk
+      
+      - name: Download AAB
+        uses: actions/download-artifact@v4
+        with:
+          name: android-bundle
+      
+      - name: Get version from tag
+        id: version
+        run: echo "version=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+      
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            app-release.apk
+            app-release.aab
+          body: |
+            ## Mafutapass v${{ steps.version.outputs.version }}
+            
+            ### Downloads
+            - **APK (Direct Install):** app-release.apk
+            - **AAB (Play Store):** app-release.aab
+            
+            ### Installation
+            1. Download the APK file
+            2. Enable "Install from Unknown Sources" in Android settings
+            3. Install the APK
+            
+            ### What's New
+            See CHANGELOG.md for details.
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
